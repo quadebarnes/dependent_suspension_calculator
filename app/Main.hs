@@ -5,3 +5,14 @@
 --      compression (bumps stop angle) to full drop (limit strap angle) which should be inputs from the user.
 -- 4. run each angle through the calculator and store the results in a new list of outputs
 -- 5. save each output to a csv file that can be looked at later.
+
+-- create a struct that represnets a setup of a vehicle
+-- Load the json file into that struct
+-- caculate the length and angle of the front and rear lower arms. Save those into new
+--      "state" struct.
+-- create a function that genreates states from the base state and returns a list of all
+--      the states
+-- generate the characterisitcs from each state
+--      generate the position of the axle housing based on the input state
+--      used the generated position to cacl IC anti roll and pinion angle
+-- save the results to a csv file
