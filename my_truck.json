@@ -1,0 +1,19 @@
+{
+  "wheelbase": 103.0,
+  "brakeBias": 0.6,
+  "driveBias": 0.0,
+  "mass": 4000.0,
+  "massSprung": 3200.0,
+  "massUnsprung": 800.0,
+  "wheelRollingRadius": 16.5,
+
+  "frontUpperArmFrameMountLoc": { "x": 18.0, "y": 15.0, "z": 16.0 },
+  "frontUpperArmAxleMountLoc": { "x": 0.0, "y": 15.0, "z": 20.0 },
+  "frontLowerArmFrameMountLoc": { "x": 26.0, "y": -15.0, "z": 10.0 },
+  "frontLowerArmAxleMountLoc": { "x": 0.0, "y": -15.0, "z": 9.0 },
+
+  "rearUpperArmFrameMountLoc": { "x": 20.0, "y": 15.0, "z": 18.0 },
+  "rearUpperArmAxleMountLoc": { "x": 0.0, "y": 15.0, "z": 22.0 },
+  "rearLowerArmFrameMountLoc": { "x": 30.0, "y": -15.0, "z": 11.0 },
+  "rearLowerArmAxleMountLoc": { "x": 0.0, "y": -15.0, "z": 9.0 }
+}
