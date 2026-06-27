@@ -1,19 +1,32 @@
 {
   "wheelbase": 103.0,
   "brakeBias": 0.6,
-  "driveBias": 0.0,
+  "driveBias": 0.5,
   "mass": 4000.0,
   "massSprung": 3200.0,
   "massUnsprung": 800.0,
-  "wheelRollingRadius": 16.5,
+  "wheelRollingRadius": 17.25,
 
-  "frontUpperArmFrameMountLoc": { "x": 18.0, "y": 15.0, "z": 16.0 },
-  "frontUpperArmAxleMountLoc": { "x": 0.0, "y": 15.0, "z": 20.0 },
-  "frontLowerArmFrameMountLoc": { "x": 26.0, "y": -15.0, "z": 10.0 },
-  "frontLowerArmAxleMountLoc": { "x": 0.0, "y": -15.0, "z": 9.0 },
+  "frontShockAxleMountingLoc": { "x": 0.0, "y": 19.0, "z": 18.75 },
+  "frontShockFrameMountingLoc": { "x": 2.0, "y": 16.0, "z": 42.75 },
+  "frontShockExtendedLength": 30.0,
+  "frontShockCompressedLength": 18.0,
 
-  "rearUpperArmFrameMountLoc": { "x": 20.0, "y": 15.0, "z": 18.0 },
-  "rearUpperArmAxleMountLoc": { "x": 0.0, "y": 15.0, "z": 22.0 },
-  "rearLowerArmFrameMountLoc": { "x": 30.0, "y": -15.0, "z": 11.0 },
-  "rearLowerArmAxleMountLoc": { "x": 0.0, "y": -15.0, "z": 9.0 }
+  "rearShockAxleMountingLoc": { "x": 0.0, "y": 19.0, "z": 18.75 },
+  "rearShockFrameMountingLoc": { "x": 2.0, "y": 16.0, "z": 44.75 },
+  "rearShockExtendedLength": 34.0,
+  "rearShockCompressedLength": 20.0,
+
+  "frontUpperArmFrameMountLoc": { "x": 18.0, "y": 0.0, "z": 16.75 },
+  "frontUpperArmAxleMountLoc": { "x": 0.0, "y": 0.0, "z": 20.75 },
+  "frontLowerArmFrameMountLoc": { "x": 26.0, "y": -15.0, "z": 10.75 },
+  "frontLowerArmAxleMountLoc": { "x": 0.0, "y": -15.0, "z": 9.75 },
+
+  "frontTrackBarAxleMountLoc": { "x": 0.0, "y": 18.0, "z": 14.75 },
+  "frontTrackBarFrameMountLoc": { "x": 0.0, "y": -15.0, "z": 18.75 },
+
+  "rearUpperArmFrameMountLoc": { "x": 20.0, "y": 6.0, "z": 18.75 },
+  "rearUpperArmAxleMountLoc": { "x": 0.0, "y": 16.0, "z": 22.75 },
+  "rearLowerArmFrameMountLoc": { "x": 30.0, "y": -15.0, "z": 11.75 },
+  "rearLowerArmAxleMountLoc": { "x": 0.0, "y": -15.0, "z": 9.75 }
 }
