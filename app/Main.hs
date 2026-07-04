@@ -75,9 +75,24 @@ calcFrontLowerArmLength cfg = calc3dDistance (frontLowerArmFrameMountLoc cfg) (f
 calcRearLowerArmLength :: Config -> Double
 calcRearLowerArmLength cfg = calc3dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
 
+radToDeg :: Double -> Double
+radToDeg rads = rads * (180 / pi)
+
+calcXZAngle :: Point -> Point -> Double
+calcXZAngle p1 p2 = atan2 rise run
+  where
+    rise = z p2 - z p1
+    run = x p2 - x p1
+
+calcFrontLowerArmAngle :: Config -> Double
+calcFrontLowerArmAngle cfg = calcXZAngle (frontLowerArmAxleMountLoc cfg) (frontLowerArmFrameMountLoc cfg)
+
+calcRearLowerArmAngle :: Config -> Double
+calcRearLowerArmAngle cfg = calcXZAngle (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
+
 main :: IO ()
 main = do
   result <- eitherDecodeFileStrict "config.json" :: IO (Either String Config)
   case result of
     Left err -> putStrLn err
-    Right config -> print (calcRearLowerArmLength config)
+    Right config -> print (radToDeg (calcFrontLowerArmAngle config))
