@@ -5,7 +5,6 @@
 --      compression (bumps stop angle) to full drop (limit strap angle) which should be inputs from the user.
 -- 4. run each angle through the calculator and store the results in a new list of outputs
 -- 5. save each output to a csv file that can be looked at later.
-
 -- create a struct that represnets a setup of a vehicle
 -- Load the json file into that struct
 -- caculate the length and angle of the front and rear lower arms. Save those into new
@@ -16,16 +15,23 @@
 --      generate the position of the axle housing based on the input state
 --      used the generated position to cacl IC anti roll and pinion angle
 -- save the results to a csv file
+{-# LANGUAGE DeriveGeneric #-}
 
 module Main where
+
+import Data.Aeson (FromJSON, Result (Success), eitherDecodeFileStrict)
+import GHC.Generics (Generic)
 
 data Point = Point
   { x :: Double,
     y :: Double,
     z :: Double
   }
+  deriving (Show, Generic)
 
-data Setup = Setup
+instance FromJSON Point
+
+data Config = Config
   { wheelbase :: Double,
     brakeBias :: Double,
     driveBias :: Double,
@@ -52,3 +58,13 @@ data Setup = Setup
     rearLowerArmFrameMountLoc :: Point,
     rearLowerArmAxleMountLoc :: Point
   }
+  deriving (Show, Generic)
+
+instance FromJSON Config
+
+main :: IO ()
+main = do
+  result <- eitherDecodeFileStrict "config.json" :: IO (Either String Config)
+  case result of
+    Left err -> putStrLn err
+    Right config -> putStrLn "Success!"
