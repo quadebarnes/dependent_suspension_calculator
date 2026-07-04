@@ -16,3 +16,39 @@
 --      generate the position of the axle housing based on the input state
 --      used the generated position to cacl IC anti roll and pinion angle
 -- save the results to a csv file
+
+module Main where
+
+data Point = Point
+  { x :: Double,
+    y :: Double,
+    z :: Double
+  }
+
+data Setup = Setup
+  { wheelbase :: Double,
+    brakeBias :: Double,
+    driveBias :: Double,
+    mass :: Double,
+    massSprung :: Double,
+    massUnsprung :: Double,
+    wheelRollingRadius :: Double,
+    frontShockAxleMountingLoc :: Point,
+    frontShockFrameMountingLoc :: Point,
+    frontShockExtendedLength :: Double,
+    frontShockCompressedLength :: Double,
+    rearShockAxleMountingLoc :: Point,
+    rearShockFrameMountingLoc :: Point,
+    rearShockExtendedLength :: Double,
+    rearShockCompressedLength :: Double,
+    frontUpperArmFrameMountLoc :: Point,
+    frontUpperArmAxleMountLoc :: Point,
+    frontLowerArmFrameMountLoc :: Point,
+    frontLowerArmAxleMountLoc :: Point,
+    frontTrackBarAxleMountLoc :: Point,
+    frontTrackBarFrameMountLoc :: Point,
+    rearUpperArmFrameMountLoc :: Point,
+    rearUpperArmAxleMountLoc :: Point,
+    rearLowerArmFrameMountLoc :: Point,
+    rearLowerArmAxleMountLoc :: Point
+  }
