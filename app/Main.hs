@@ -62,9 +62,22 @@ data Config = Config
 
 instance FromJSON Config
 
+calc3dDistance :: Point -> Point -> Double
+calc3dDistance p1 p2 = sqrt (dx ^ 2 + dy ^ 2 + dz ^ 2)
+  where
+    dx = x p2 - x p1
+    dy = y p2 - y p1
+    dz = z p2 - z p1
+
+calcFrontLowerArmLength :: Config -> Double
+calcFrontLowerArmLength cfg = calc3dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
+
+calcRearLowerArmLength :: Config -> Double
+calcRearLowerArmLength cfg = calc3dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
+
 main :: IO ()
 main = do
   result <- eitherDecodeFileStrict "config.json" :: IO (Either String Config)
   case result of
     Left err -> putStrLn err
-    Right config -> putStrLn "Success!"
+    Right config -> print (calcRearLowerArmLength config)
