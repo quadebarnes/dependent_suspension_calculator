@@ -62,6 +62,21 @@ data Config = Config
 
 instance FromJSON Config
 
+data State = State
+  { lowerArmAngle :: Double,
+    upperArmAxleMountPos :: Point,
+    lowerArmAxleMountPos :: Point
+  }
+  deriving (Show, Generic)
+
+data System = Front | Rear
+
+calc2dDistance :: Point -> Point -> Double
+calc2dDistance p1 p2 = sqrt (dx ^ 2 + dz ^ 2)
+    where
+    dx = x p2 - x p1
+    dz = z p2 - z p1
+
 calc3dDistance :: Point -> Point -> Double
 calc3dDistance p1 p2 = sqrt (dx ^ 2 + dy ^ 2 + dz ^ 2)
   where
@@ -69,11 +84,15 @@ calc3dDistance p1 p2 = sqrt (dx ^ 2 + dy ^ 2 + dz ^ 2)
     dy = y p2 - y p1
     dz = z p2 - z p1
 
-calcFrontLowerArmLength :: Config -> Double
-calcFrontLowerArmLength cfg = calc3dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
+calcLowerArmLength :: Config -> System -> Double
+calcLowerArmLength cfg sys = case sys of
+    Front -> calc3dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
+    Rear -> calc3dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
 
-calcRearLowerArmLength :: Config -> Double
-calcRearLowerArmLength cfg = calc3dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
+calcLowerArmSideLength :: Config -> System -> Double
+calcLowerArmSideLength cfg sys = case sys of
+    Front -> calc2dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
+    Rear -> calc2dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
 
 radToDeg :: Double -> Double
 radToDeg rads = rads * (180 / pi)
@@ -84,8 +103,10 @@ calcXZAngle p1 p2 = atan2 rise run
     rise = z p2 - z p1
     run = x p2 - x p1
 
-calcFrontLowerArmAngle :: Config -> Double
-calcFrontLowerArmAngle cfg = calcXZAngle (frontLowerArmAxleMountLoc cfg) (frontLowerArmFrameMountLoc cfg)
+calcLowerArmAngle :: Config -> System -> Double
+calcLowerArmAngle cfg sys = case sys of
+    Front -> calcXZAngle (frontLowerArmAxleMountLoc cfg) (frontLowerArmFrameMountLoc cfg)
+    Rear -> calcXZAngle (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
 
 calcRearLowerArmAngle :: Config -> Double
 calcRearLowerArmAngle cfg = calcXZAngle (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
