@@ -29,6 +29,13 @@ data Point = Point
   }
   deriving (Show, Generic)
 
+data UnitVector = UnitVector
+  { uvx :: Double,
+    uvy :: Double,
+    uvz :: Double
+  }
+  deriving (Show, Generic)
+
 instance FromJSON Point
 
 data Config = Config
@@ -73,7 +80,7 @@ data System = Front | Rear
 
 calc2dDistance :: Point -> Point -> Double
 calc2dDistance p1 p2 = sqrt (dx ^ 2 + dz ^ 2)
-    where
+  where
     dx = x p2 - x p1
     dz = z p2 - z p1
 
@@ -86,13 +93,18 @@ calc3dDistance p1 p2 = sqrt (dx ^ 2 + dy ^ 2 + dz ^ 2)
 
 calcLowerArmLength :: Config -> System -> Double
 calcLowerArmLength cfg sys = case sys of
-    Front -> calc3dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
-    Rear -> calc3dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
+  Front -> calc3dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
+  Rear -> calc3dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
 
 calcLowerArmSideLength :: Config -> System -> Double
 calcLowerArmSideLength cfg sys = case sys of
-    Front -> calc2dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
-    Rear -> calc2dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
+  Front -> calc2dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
+  Rear -> calc2dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
+
+calcUpperArmSideLength :: Config -> System -> Double
+calcUpperArmSideLength cfg sys = case sys of
+  Front -> calc2dDistance (frontUpperArmFrameMountLoc cfg) (frontUpperArmAxleMountLoc cfg)
+  Rear -> calc2dDistance (rearUpperArmAxleMountLoc cfg) (rearUpperArmFrameMountLoc cfg)
 
 radToDeg :: Double -> Double
 radToDeg rads = rads * (180 / pi)
@@ -105,15 +117,118 @@ calcXZAngle p1 p2 = atan2 rise run
 
 calcLowerArmAngle :: Config -> System -> Double
 calcLowerArmAngle cfg sys = case sys of
-    Front -> calcXZAngle (frontLowerArmAxleMountLoc cfg) (frontLowerArmFrameMountLoc cfg)
-    Rear -> calcXZAngle (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
+  Front -> calcXZAngle (frontLowerArmAxleMountLoc cfg) (frontLowerArmFrameMountLoc cfg)
+  Rear -> calcXZAngle (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
 
-calcRearLowerArmAngle :: Config -> Double
-calcRearLowerArmAngle cfg = calcXZAngle (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
+-- The functions bellow are for calculating the location of the lower arm axle side mount
+
+calcAxleMountsDistance :: Config -> System -> Double
+calcAxleMountsDistance cfg sys = case sys of
+  Front -> calc2dDistance (frontUpperArmAxleMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
+  Rear -> calc2dDistance (rearUpperArmAxleMountLoc cfg) (rearLowerArmAxleMountLoc cfg)
+
+calcDistanceBetweenCenters :: Point -> Point -> Double
+calcDistanceBetweenCenters p0 p1 = abs (calc2dDistance p1 p0)
+
+calcDistanceToRadicalLine :: Double -> Double -> Double -> Double
+calcDistanceToRadicalLine r0 r1 d = (r0 ^ 2 - r1 ^ 2 + d ^ 2) / (2 * d)
+
+calcPerpendicularOffset :: Double -> Double -> Double
+calcPerpendicularOffset r0 a = sqrt (r0 ^ 2 - a ^ 2)
+
+-- The problems is the unit vector input here and in later usages
+calcCenterLinePoint :: Point -> UnitVector -> Double -> Point
+calcCenterLinePoint p0 u a =
+  Point
+    { x = x p0 + (a * uvx u),
+      y = 0,
+      z = z p0 + (a * uvz u)
+    }
+
+calcUnitVector :: Point -> Point -> UnitVector
+calcUnitVector p0 p1 =
+  UnitVector
+    { uvx = vx / d,
+      uvy = 0,
+      uvz = vz / d
+    }
+  where
+    vx = x p1 - x p0
+    vz = z p1 - z p0
+    d = sqrt (vx ^ 2 + vz ^ 2)
+
+calcSteppedPerpendicular :: Point -> Double -> UnitVector -> Point
+calcSteppedPerpendicular p2 h u =
+  Point
+    { x = x p2 + h * (-uvz u),
+      y = 0,
+      z = z p2 + h * uvx u
+    }
+
+-- inputs:
+-- p0 -> lowerArmAxleMountLoc
+calcUpperArmAxleMountLoc :: Config -> System -> Point -> Point
+calcUpperArmAxleMountLoc cfg sys p0 = calcSteppedPerpendicular p2 h u
+  where
+    p1 = frontUpperArmFrameMountLoc cfg
+    r0 = calcAxleMountsDistance cfg sys
+    r1 = calcUpperArmSideLength cfg sys
+    d = calcDistanceBetweenCenters p0 p1
+    a = calcDistanceToRadicalLine r0 r1 d
+    h = calcPerpendicularOffset r0 a
+    u = calcUnitVector p0 p1
+    p2 = calcCenterLinePoint p0 u a
+
+calcState :: Config -> System -> Double -> Double -> State
+calcState cfg sys armAngle armSideLength = case sys of
+  Front ->
+    State
+      { lowerArmAngle = armAngle,
+        upperArmAxleMountPos =
+          Point -- This is wrong because the upper arm does not share the same angle as the lower
+            { x = x (frontUpperArmFrameMountLoc cfg) - armSideLength * cos armAngle,
+              y = y (frontUpperArmAxleMountLoc cfg),
+              z = z (frontUpperArmFrameMountLoc cfg) - armSideLength * sin armAngle
+            },
+        lowerArmAxleMountPos =
+          Point
+            { x = x (frontLowerArmFrameMountLoc cfg) - armSideLength * cos armAngle,
+              y = y (frontLowerArmAxleMountLoc cfg),
+              z = z (frontLowerArmFrameMountLoc cfg) - armSideLength * sin armAngle
+            }
+      }
+  Rear ->
+    State
+      { lowerArmAngle = armAngle,
+        upperArmAxleMountPos =
+          Point
+            { x = x (rearUpperArmFrameMountLoc cfg) - armSideLength * cos armAngle,
+              y = y (rearUpperArmAxleMountLoc cfg),
+              z = z (rearUpperArmFrameMountLoc cfg) - armSideLength * sin armAngle
+            },
+        lowerArmAxleMountPos =
+          Point
+            { x = x (rearLowerArmFrameMountLoc cfg) - armSideLength * cos armAngle,
+              y = y (rearLowerArmAxleMountLoc cfg),
+              z = z (rearLowerArmFrameMountLoc cfg) - armSideLength * sin armAngle
+            }
+      }
+
+-- Function Config -> RestingArmAngle -> ArmLength -> States
+-- Takes the config and the base resting state and calculates a list of states based on the bump stop and limit strap.
+
+-- Function Config -> ArmAngle -> ArmLength -> StepSize -> List of State
+-- Where states has updated points for the axle side mounts
+
+-- Function Config -> State -> Anti
+
+-- Function with signature Config -> LowerArmAngle -> Result that can be saved in the CSV
+-- this function takes teh angle of the arm and calculates the isnstant center based on it.
 
 main :: IO ()
 main = do
   result <- eitherDecodeFileStrict "config.json" :: IO (Either String Config)
   case result of
     Left err -> putStrLn err
-    Right config -> print (radToDeg (calcFrontLowerArmAngle config))
+    -- Right config -> print (calcState config Front (calcLowerArmAngle config Front) (calcLowerArmSideLength config Front))
+    Right config -> print (calcUpperArmAxleMountLoc config Front (frontLowerArmAxleMountLoc config))
