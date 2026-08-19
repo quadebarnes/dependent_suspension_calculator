@@ -17,9 +17,9 @@
 -- save the results to a csv file
 {-# LANGUAGE DeriveGeneric #-}
 
-module Main where
+module Main (main) where
 
-import Data.Aeson (FromJSON, Result (Success), eitherDecodeFileStrict)
+import Data.Aeson (FromJSON, eitherDecodeFileStrict)
 import GHC.Generics (Generic)
 
 data Point = Point
@@ -101,8 +101,8 @@ calcLowerArmSideLength cfg sys = case sys of
   Front -> calc2dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
   Rear -> calc2dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
 
-calcUpperArmSideLength :: Config -> System -> Double
-calcUpperArmSideLength cfg sys = case sys of
+calcUpperArmProjectedLength :: Config -> System -> Double
+calcUpperArmProjectedLength cfg sys = case sys of
   Front -> calc2dDistance (frontUpperArmFrameMountLoc cfg) (frontUpperArmAxleMountLoc cfg)
   Rear -> calc2dDistance (rearUpperArmAxleMountLoc cfg) (rearUpperArmFrameMountLoc cfg)
 
@@ -136,7 +136,6 @@ calcDistanceToRadicalLine r0 r1 d = (r0 ^ 2 - r1 ^ 2 + d ^ 2) / (2 * d)
 calcPerpendicularOffset :: Double -> Double -> Double
 calcPerpendicularOffset r0 a = sqrt (r0 ^ 2 - a ^ 2)
 
--- The problems is the unit vector input here and in later usages
 calcCenterLinePoint :: Point -> UnitVector -> Double -> Point
 calcCenterLinePoint p0 u a =
   Point
@@ -165,14 +164,15 @@ calcSteppedPerpendicular p2 h u =
       z = z p2 + h * uvx u
     }
 
--- inputs:
--- p0 -> lowerArmAxleMountLoc
+-- Note: p0 is the lowerArmAxleMountLoc
 calcUpperArmAxleMountLoc :: Config -> System -> Point -> Point
 calcUpperArmAxleMountLoc cfg sys p0 = calcSteppedPerpendicular p2 h u
   where
-    p1 = frontUpperArmFrameMountLoc cfg
+    p1 = case sys of
+      Front -> frontUpperArmFrameMountLoc cfg
+      Rear -> rearUpperArmFrameMountLoc cfg
     r0 = calcAxleMountsDistance cfg sys
-    r1 = calcUpperArmSideLength cfg sys
+    r1 = calcUpperArmProjectedLength cfg sys
     d = calcDistanceBetweenCenters p0 p1
     a = calcDistanceToRadicalLine r0 r1 d
     h = calcPerpendicularOffset r0 a
@@ -231,4 +231,4 @@ main = do
   case result of
     Left err -> putStrLn err
     -- Right config -> print (calcState config Front (calcLowerArmAngle config Front) (calcLowerArmSideLength config Front))
-    Right config -> print (calcUpperArmAxleMountLoc config Front (frontLowerArmAxleMountLoc config))
+    Right config -> print (calcUpperArmAxleMountLoc config Rear (rearLowerArmAxleMountLoc config))
