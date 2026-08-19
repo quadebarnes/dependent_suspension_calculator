@@ -79,13 +79,13 @@ data State = State
 data System = Front | Rear
 
 calc2dDistance :: Point -> Point -> Double
-calc2dDistance p1 p2 = sqrt (dx ^ 2 + dz ^ 2)
+calc2dDistance p1 p2 = sqrt (dx * dx + dz * dz)
   where
     dx = x p2 - x p1
     dz = z p2 - z p1
 
 calc3dDistance :: Point -> Point -> Double
-calc3dDistance p1 p2 = sqrt (dx ^ 2 + dy ^ 2 + dz ^ 2)
+calc3dDistance p1 p2 = sqrt (dx * dx + dy * dy + dz * dz)
   where
     dx = x p2 - x p1
     dy = y p2 - y p1
@@ -131,10 +131,10 @@ calcDistanceBetweenCenters :: Point -> Point -> Double
 calcDistanceBetweenCenters p0 p1 = abs (calc2dDistance p1 p0)
 
 calcDistanceToRadicalLine :: Double -> Double -> Double -> Double
-calcDistanceToRadicalLine r0 r1 d = (r0 ^ 2 - r1 ^ 2 + d ^ 2) / (2 * d)
+calcDistanceToRadicalLine r0 r1 d = (r0 * r0 - r1 * r1 + d * d) / (2 * d)
 
 calcPerpendicularOffset :: Double -> Double -> Double
-calcPerpendicularOffset r0 a = sqrt (r0 ^ 2 - a ^ 2)
+calcPerpendicularOffset r0 a = sqrt (r0 * r0 - a * a)
 
 calcCenterLinePoint :: Point -> UnitVector -> Double -> Point
 calcCenterLinePoint p0 u a =
@@ -154,7 +154,7 @@ calcUnitVector p0 p1 =
   where
     vx = x p1 - x p0
     vz = z p1 - z p0
-    d = sqrt (vx ^ 2 + vz ^ 2)
+    d = sqrt (vx * vx + vz * vz)
 
 calcSteppedPerpendicular :: Point -> Double -> UnitVector -> Point
 calcSteppedPerpendicular p2 h u =
