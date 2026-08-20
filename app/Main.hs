@@ -103,7 +103,10 @@ calcLowerArmAngle cfg sys = case sys of
   Front -> calcXZAngle (frontLowerArmAxleMountLoc cfg) (frontLowerArmFrameMountLoc cfg)
   Rear -> calcXZAngle (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
 
--- The functions bellow are for calculating the location of the lower arm axle side mount
+-- --------------------------------------------------------------------------------------
+-- The functions bellow are for calculating the location of the upper arm axle mount from
+-- from the lower arm axle mount and the angle of the lower arm.
+-- --------------------------------------------------------------------------------------
 
 calcAxleMountsDistance :: Config -> System -> Double
 calcAxleMountsDistance cfg sys = case sys of
