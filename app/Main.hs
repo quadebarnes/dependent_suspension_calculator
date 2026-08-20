@@ -1,20 +1,3 @@
---  OVERALL PLAN
--- 1. Load in the .json file with the positions of each joint
--- 2. Calculate the length and angle of the lower arm
--- 3. Generate a list of lower arm anagle that the characterisitics should be generated at from full
---      compression (bumps stop angle) to full drop (limit strap angle) which should be inputs from the user.
--- 4. run each angle through the calculator and store the results in a new list of outputs
--- 5. save each output to a csv file that can be looked at later.
--- create a struct that represnets a setup of a vehicle
--- Load the json file into that struct
--- caculate the length and angle of the front and rear lower arms. Save those into new
---      "state" struct.
--- create a function that genreates states from the base state and returns a list of all
---      the states
--- generate the characterisitcs from each state
---      generate the position of the axle housing based on the input state
---      used the generated position to cacl IC anti roll and pinion angle
--- save the results to a csv file
 {-# LANGUAGE DeriveGeneric #-}
 
 module Main (main) where
@@ -212,22 +195,9 @@ calcState cfg sys lwrArmAngle = case sys of
   where
     lwrArmProjectedLength = calcLowerArmProjectedLength cfg sys
 
--- Function Config -> RestingArmAngle -> ArmLength -> States
--- Takes the config and the base resting state and calculates a list of states based on the bump stop and limit strap.
-
--- Function Config -> ArmAngle -> ArmLength -> StepSize -> List of State
--- Where states has updated points for the axle side mounts
-
--- Function Config -> State -> Anti
-
--- Function with signature Config -> LowerArmAngle -> Result that can be saved in the CSV
--- this function takes teh angle of the arm and calculates the isnstant center based on it.
-
 main :: IO ()
 main = do
   result <- eitherDecodeFileStrict "config.json" :: IO (Either String Config)
   case result of
     Left err -> putStrLn err
-    -- Right config -> print (calcState config Front (calcLowerArmAngle config Front) (calcLowerProjectedSideLength config Front))
-    -- Right config -> print (calcUpperArmAxleMountLoc config Rear (rearLowerArmAxleMountLoc config))
     Right config -> print (calcState config Front (calcLowerArmAngle config Front))
