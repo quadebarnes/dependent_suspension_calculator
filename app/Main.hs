@@ -96,8 +96,8 @@ calcLowerArmLength cfg sys = case sys of
   Front -> calc3dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
   Rear -> calc3dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
 
-calcLowerArmSideLength :: Config -> System -> Double
-calcLowerArmSideLength cfg sys = case sys of
+calcLowerArmProjectedLength :: Config -> System -> Double
+calcLowerArmProjectedLength cfg sys = case sys of
   Front -> calc2dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
   Rear -> calc2dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
 
@@ -179,40 +179,38 @@ calcUpperArmAxleMountLoc cfg sys p0 = calcSteppedPerpendicular p2 h u
     u = calcUnitVector p0 p1
     p2 = calcCenterLinePoint p0 u a
 
-calcState :: Config -> System -> Double -> Double -> State
-calcState cfg sys armAngle armSideLength = case sys of
+calcState :: Config -> System -> Double -> State
+calcState cfg sys lwrArmAngle = case sys of
   Front ->
     State
-      { lowerArmAngle = armAngle,
-        upperArmAxleMountPos =
-          Point -- This is wrong because the upper arm does not share the same angle as the lower
-            { x = x (frontUpperArmFrameMountLoc cfg) - armSideLength * cos armAngle,
-              y = y (frontUpperArmAxleMountLoc cfg),
-              z = z (frontUpperArmFrameMountLoc cfg) - armSideLength * sin armAngle
-            },
-        lowerArmAxleMountPos =
-          Point
-            { x = x (frontLowerArmFrameMountLoc cfg) - armSideLength * cos armAngle,
-              y = y (frontLowerArmAxleMountLoc cfg),
-              z = z (frontLowerArmFrameMountLoc cfg) - armSideLength * sin armAngle
-            }
+      { lowerArmAngle = lwrArmAngle,
+        upperArmAxleMountPos = upprLoc,
+        lowerArmAxleMountPos = lwrLoc
       }
+    where
+      lwrLoc =
+        Point
+          { x = x (frontLowerArmFrameMountLoc cfg) - lwrArmProjectedLength * cos lwrArmAngle,
+            y = y (frontLowerArmAxleMountLoc cfg),
+            z = z (frontLowerArmFrameMountLoc cfg) - lwrArmProjectedLength * sin lwrArmAngle
+          }
+      upprLoc = calcUpperArmAxleMountLoc cfg sys lwrLoc
   Rear ->
     State
-      { lowerArmAngle = armAngle,
-        upperArmAxleMountPos =
-          Point
-            { x = x (rearUpperArmFrameMountLoc cfg) - armSideLength * cos armAngle,
-              y = y (rearUpperArmAxleMountLoc cfg),
-              z = z (rearUpperArmFrameMountLoc cfg) - armSideLength * sin armAngle
-            },
-        lowerArmAxleMountPos =
-          Point
-            { x = x (rearLowerArmFrameMountLoc cfg) - armSideLength * cos armAngle,
-              y = y (rearLowerArmAxleMountLoc cfg),
-              z = z (rearLowerArmFrameMountLoc cfg) - armSideLength * sin armAngle
-            }
+      { lowerArmAngle = lwrArmAngle,
+        upperArmAxleMountPos = upprLoc,
+        lowerArmAxleMountPos = lwrLoc
       }
+    where
+      lwrLoc =
+        Point
+          { x = x (rearLowerArmFrameMountLoc cfg) - lwrArmProjectedLength * cos lwrArmAngle,
+            y = y (rearLowerArmAxleMountLoc cfg),
+            z = z (rearLowerArmFrameMountLoc cfg) - lwrArmProjectedLength * sin lwrArmAngle
+          }
+      upprLoc = calcUpperArmAxleMountLoc cfg sys lwrLoc
+  where
+    lwrArmProjectedLength = calcLowerArmProjectedLength cfg sys
 
 -- Function Config -> RestingArmAngle -> ArmLength -> States
 -- Takes the config and the base resting state and calculates a list of states based on the bump stop and limit strap.
@@ -230,5 +228,6 @@ main = do
   result <- eitherDecodeFileStrict "config.json" :: IO (Either String Config)
   case result of
     Left err -> putStrLn err
-    -- Right config -> print (calcState config Front (calcLowerArmAngle config Front) (calcLowerArmSideLength config Front))
-    Right config -> print (calcUpperArmAxleMountLoc config Rear (rearLowerArmAxleMountLoc config))
+    -- Right config -> print (calcState config Front (calcLowerArmAngle config Front) (calcLowerProjectedSideLength config Front))
+    -- Right config -> print (calcUpperArmAxleMountLoc config Rear (rearLowerArmAxleMountLoc config))
+    Right config -> print (calcState config Front (calcLowerArmAngle config Front))
