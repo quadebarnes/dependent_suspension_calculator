@@ -4,22 +4,7 @@ module Main (main) where
 
 import Data.Aeson (FromJSON, eitherDecodeFileStrict)
 import GHC.Generics (Generic)
-
-data Point = Point
-  { x :: Double,
-    y :: Double,
-    z :: Double
-  }
-  deriving (Show, Generic)
-
-data UnitVector = UnitVector
-  { uvx :: Double,
-    uvy :: Double,
-    uvz :: Double
-  }
-  deriving (Show, Generic)
-
-instance FromJSON Point
+import Geometry
 
 data Config = Config
   { wheelbase :: Double,
@@ -61,19 +46,6 @@ data State = State
 
 data System = Front | Rear
 
-calc2dDistance :: Point -> Point -> Double
-calc2dDistance p1 p2 = sqrt (dx * dx + dz * dz)
-  where
-    dx = x p2 - x p1
-    dz = z p2 - z p1
-
-calc3dDistance :: Point -> Point -> Double
-calc3dDistance p1 p2 = sqrt (dx * dx + dy * dy + dz * dz)
-  where
-    dx = x p2 - x p1
-    dy = y p2 - y p1
-    dz = z p2 - z p1
-
 calcLowerArmLength :: Config -> System -> Double
 calcLowerArmLength cfg sys = case sys of
   Front -> calc3dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
@@ -89,66 +61,15 @@ calcUpperArmProjectedLength cfg sys = case sys of
   Front -> calc2dDistance (frontUpperArmFrameMountLoc cfg) (frontUpperArmAxleMountLoc cfg)
   Rear -> calc2dDistance (rearUpperArmAxleMountLoc cfg) (rearUpperArmFrameMountLoc cfg)
 
-radToDeg :: Double -> Double
-radToDeg rads = rads * (180 / pi)
-
-calcXZAngle :: Point -> Point -> Double
-calcXZAngle p1 p2 = atan2 rise run
-  where
-    rise = z p2 - z p1
-    run = x p2 - x p1
-
 calcLowerArmAngle :: Config -> System -> Double
 calcLowerArmAngle cfg sys = case sys of
   Front -> calcXZAngle (frontLowerArmAxleMountLoc cfg) (frontLowerArmFrameMountLoc cfg)
   Rear -> calcXZAngle (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
 
--- --------------------------------------------------------------------------------------
--- The functions bellow are for calculating the location of the upper arm axle mount from
--- from the lower arm axle mount and the angle of the lower arm.
--- --------------------------------------------------------------------------------------
-
 calcAxleMountsDistance :: Config -> System -> Double
 calcAxleMountsDistance cfg sys = case sys of
   Front -> calc2dDistance (frontUpperArmAxleMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
   Rear -> calc2dDistance (rearUpperArmAxleMountLoc cfg) (rearLowerArmAxleMountLoc cfg)
-
-calcDistanceBetweenCenters :: Point -> Point -> Double
-calcDistanceBetweenCenters p0 p1 = abs (calc2dDistance p1 p0)
-
-calcDistanceToRadicalLine :: Double -> Double -> Double -> Double
-calcDistanceToRadicalLine r0 r1 d = (r0 * r0 - r1 * r1 + d * d) / (2 * d)
-
-calcPerpendicularOffset :: Double -> Double -> Double
-calcPerpendicularOffset r0 a = sqrt (r0 * r0 - a * a)
-
-calcCenterLinePoint :: Point -> UnitVector -> Double -> Point
-calcCenterLinePoint p0 u a =
-  Point
-    { x = x p0 + (a * uvx u),
-      y = 0,
-      z = z p0 + (a * uvz u)
-    }
-
-calcUnitVector :: Point -> Point -> UnitVector
-calcUnitVector p0 p1 =
-  UnitVector
-    { uvx = vx / d,
-      uvy = 0,
-      uvz = vz / d
-    }
-  where
-    vx = x p1 - x p0
-    vz = z p1 - z p0
-    d = sqrt (vx * vx + vz * vz)
-
-calcSteppedPerpendicular :: Point -> Double -> UnitVector -> Point
-calcSteppedPerpendicular p2 h u =
-  Point
-    { x = x p2 + h * (-uvz u),
-      y = 0,
-      z = z p2 + h * uvx u
-    }
 
 -- Note: p0 is the lowerArmAxleMountLoc
 calcUpperArmAxleMountLoc :: Config -> System -> Point -> Point
