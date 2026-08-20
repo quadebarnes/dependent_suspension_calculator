@@ -2,40 +2,10 @@
 
 module Main (main) where
 
-import Data.Aeson (FromJSON, eitherDecodeFileStrict)
+import Config
+import Data.Aeson (eitherDecodeFileStrict)
 import GHC.Generics (Generic)
 import Geometry
-
-data Config = Config
-  { wheelbase :: Double,
-    brakeBias :: Double,
-    driveBias :: Double,
-    mass :: Double,
-    massSprung :: Double,
-    massUnsprung :: Double,
-    wheelRollingRadius :: Double,
-    frontShockAxleMountingLoc :: Point,
-    frontShockFrameMountingLoc :: Point,
-    frontShockExtendedLength :: Double,
-    frontShockCompressedLength :: Double,
-    rearShockAxleMountingLoc :: Point,
-    rearShockFrameMountingLoc :: Point,
-    rearShockExtendedLength :: Double,
-    rearShockCompressedLength :: Double,
-    frontUpperArmFrameMountLoc :: Point,
-    frontUpperArmAxleMountLoc :: Point,
-    frontLowerArmFrameMountLoc :: Point,
-    frontLowerArmAxleMountLoc :: Point,
-    frontTrackBarAxleMountLoc :: Point,
-    frontTrackBarFrameMountLoc :: Point,
-    rearUpperArmFrameMountLoc :: Point,
-    rearUpperArmAxleMountLoc :: Point,
-    rearLowerArmFrameMountLoc :: Point,
-    rearLowerArmAxleMountLoc :: Point
-  }
-  deriving (Show, Generic)
-
-instance FromJSON Config
 
 data State = State
   { lowerArmAngle :: Double,
