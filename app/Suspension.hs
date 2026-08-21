@@ -52,9 +52,16 @@ calcAxleMountsDistance cfg sys = case sys of
   Front -> calc2dDistance (frontUpperArmAxleMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
   Rear -> calc2dDistance (rearUpperArmAxleMountLoc cfg) (rearLowerArmAxleMountLoc cfg)
 
+getCorrectMountSolution :: Point -> (Point, Point) -> Point
+getCorrectMountSolution prev (s1, s2) =
+  if s1d < s2d then s1 else s2
+  where
+    s1d = calc3dDistance prev s1
+    s2d = calc3dDistance prev s2
+
 -- Note: p0 is the lowerArmAxleMountLoc
-calcUpperArmAxleMountLoc :: Config -> System -> Point -> Point
-calcUpperArmAxleMountLoc cfg sys p0 = calcSteppedPerpendicular p2 h u
+calcUpperArmAxleMountLoc :: Config -> System -> Point -> Point -> Point
+calcUpperArmAxleMountLoc cfg sys prev p0 = getCorrectMountSolution prev solutions
   where
     p1 = case sys of
       Front -> frontUpperArmFrameMountLoc cfg
@@ -66,9 +73,10 @@ calcUpperArmAxleMountLoc cfg sys p0 = calcSteppedPerpendicular p2 h u
     h = calcPerpendicularOffset r0 a
     u = calcUnitVector p0 p1
     p2 = calcCenterLinePoint p0 u a
+    solutions = calcSteppedPerpendicular p2 h u
 
-calcState :: Config -> System -> Double -> State
-calcState cfg sys lwrArmAngle = case sys of
+calcState :: Config -> System -> Point -> Double -> State
+calcState cfg sys prevUprArmAxleMountLoc lwrArmAngle = case sys of
   Front ->
     State
       { lowerArmAngle = lwrArmAngle,
@@ -82,7 +90,7 @@ calcState cfg sys lwrArmAngle = case sys of
             y = y (frontLowerArmAxleMountLoc cfg),
             z = z (frontLowerArmFrameMountLoc cfg) - lwrArmProjectedLength * sin lwrArmAngle
           }
-      upprLoc = calcUpperArmAxleMountLoc cfg sys lwrLoc
+      upprLoc = calcUpperArmAxleMountLoc cfg sys prevUprArmAxleMountLoc lwrLoc
   Rear ->
     State
       { lowerArmAngle = lwrArmAngle,
@@ -96,7 +104,7 @@ calcState cfg sys lwrArmAngle = case sys of
             y = y (rearLowerArmAxleMountLoc cfg),
             z = z (rearLowerArmFrameMountLoc cfg) - lwrArmProjectedLength * sin lwrArmAngle
           }
-      upprLoc = calcUpperArmAxleMountLoc cfg sys lwrLoc
+      upprLoc = calcUpperArmAxleMountLoc cfg sys prevUprArmAxleMountLoc lwrLoc
   where
     lwrArmProjectedLength = calcLowerArmProjectedLength cfg sys
 

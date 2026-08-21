@@ -86,10 +86,19 @@ calcUnitVector p0 p1 =
     vz = z p1 - z p0
     d = sqrt (vx * vx + vz * vz)
 
-calcSteppedPerpendicular :: Point -> Double -> UnitVector -> Point
+calcSteppedPerpendicular :: Point -> Double -> UnitVector -> (Point, Point)
 calcSteppedPerpendicular p2 h u =
-  Point
-    { x = x p2 + h * (-uvz u),
-      y = 0,
-      z = z p2 + h * uvx u
-    }
+  (s1, s2)
+  where
+    s1 =
+      Point
+        { x = x p2 + h * (-uvz u),
+          y = 0,
+          z = z p2 + h * uvx u
+        }
+    s2 =
+      Point
+        { x = x p2 - h * (-uvz u),
+          y = 0,
+          z = z p2 - h * uvx u
+        }

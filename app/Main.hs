@@ -9,5 +9,8 @@ main = do
   result <- eitherDecodeFileStrict "config.json" :: IO (Either String Config)
   case result of
     Left err -> putStrLn err
-    -- Right config -> print (calcInstantCenter config Front (calcState config Front (calcLowerArmAngle config Front)))
-    Right config -> print (normalize config)
+    Right rawConfig -> print (state) -- print (calcInstantCenter config Rear state)
+      where
+        config = normalize rawConfig
+        lwrArmAngle = calcLowerArmAngle config Rear
+        state = calcState config Rear (rearUpperArmAxleMountLoc config) lwrArmAngle
