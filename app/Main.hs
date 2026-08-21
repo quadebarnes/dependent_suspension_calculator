@@ -9,4 +9,6 @@ main = do
   result <- eitherDecodeFileStrict "config.json" :: IO (Either String Config)
   case result of
     Left err -> putStrLn err
-    Right config -> print (calcState config Front (calcLowerArmAngle config Front))
+    Right config -> print (calcInstantCenter config Front (calcState config Front (calcLowerArmAngle config Front)))
+
+-- Right config -> print (calcState config Front (calcLowerArmAngle config Front))

@@ -10,6 +10,7 @@ module Suspension
     calcAxleMountsDistance,
     calcUpperArmAxleMountLoc,
     calcState,
+    calcInstantCenter,
   )
 where
 
@@ -98,3 +99,52 @@ calcState cfg sys lwrArmAngle = case sys of
       upprLoc = calcUpperArmAxleMountLoc cfg sys lwrLoc
   where
     lwrArmProjectedLength = calcLowerArmProjectedLength cfg sys
+
+calcInstantCenter :: Config -> System -> State -> Point
+calcInstantCenter cfg sys state = case sys of
+  Front ->
+    Point
+      { x = xic,
+        y = 0,
+        z = zic
+      }
+    where
+      zlf = z (frontLowerArmFrameMountLoc cfg)
+      zla = z (lowerArmAxleMountPos state)
+      xlf = x (frontLowerArmFrameMountLoc cfg)
+      xla = x (lowerArmAxleMountPos state)
+      mLower = (zlf - zla) / (xlf - xla)
+      bLower = zla - mLower * xla
+
+      zuf = z (frontUpperArmFrameMountLoc cfg)
+      zua = z (upperArmAxleMountPos state)
+      xuf = x (frontUpperArmFrameMountLoc cfg)
+      xua = x (upperArmAxleMountPos state)
+      mUpper = (zuf - zua) / (xuf - xua)
+      bUpper = zua - mUpper * xua
+
+      xic = (bUpper - bLower) / (mLower - mUpper)
+      zic = mLower * xic + bLower
+  Rear ->
+    Point
+      { x = xic,
+        y = 0,
+        z = zic
+      }
+  where
+    zlf = z (rearLowerArmFrameMountLoc cfg)
+    zla = z (lowerArmAxleMountPos state)
+    xlf = x (rearLowerArmFrameMountLoc cfg)
+    xla = x (lowerArmAxleMountPos state)
+    mLower = (zlf - zla) / (xlf - xla)
+    bLower = zla - mLower * xla
+
+    zuf = z (rearUpperArmFrameMountLoc cfg)
+    zua = z (upperArmAxleMountPos state)
+    xuf = x (rearUpperArmFrameMountLoc cfg)
+    xua = x (upperArmAxleMountPos state)
+    mUpper = (zuf - zua) / (xuf - xua)
+    bUpper = zua - mUpper * xua
+
+    xic = (bUpper - bLower) / (mLower - mUpper)
+    zic = mLower * xic + bLower
