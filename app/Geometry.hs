@@ -13,6 +13,7 @@ module Geometry
     calcCenterLinePoint,
     calcUnitVector,
     calcSteppedPerpendicular,
+    setPointY,
   )
 where
 
@@ -102,3 +103,11 @@ calcSteppedPerpendicular p2 h u =
           y = 0,
           z = z p2 - h * uvx u
         }
+
+setPointY :: Point -> Double -> Point
+setPointY p0 newY =
+  Point
+    { x = x p0,
+      y = newY,
+      z = z p0
+    }

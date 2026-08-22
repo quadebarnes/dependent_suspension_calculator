@@ -84,7 +84,7 @@ getCorrectMountSolution prev (s1, s2) =
 
 -- Note: p0 is the lowerArmAxleMountLoc
 calcUpperArmAxleMountLoc :: AxleConfig -> Point -> Point -> Point
-calcUpperArmAxleMountLoc axlCfg prev p0 = getCorrectMountSolution prev solutions
+calcUpperArmAxleMountLoc axlCfg prev p0 = setPointY solution (y prev)
   where
     p1 = upperArmFrameMountLoc axlCfg
     r0 = calcAxleMountsDistance axlCfg
@@ -95,6 +95,7 @@ calcUpperArmAxleMountLoc axlCfg prev p0 = getCorrectMountSolution prev solutions
     u = calcUnitVector p0 p1
     p2 = calcCenterLinePoint p0 u a
     solutions = calcSteppedPerpendicular p2 h u
+    solution = getCorrectMountSolution prev solutions
 
 calcState :: AxleConfig -> Point -> Double -> State
 calcState axlCfg prevUprArmAxleMountLoc lwrArmAngle =
