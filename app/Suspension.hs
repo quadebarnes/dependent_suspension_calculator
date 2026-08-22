@@ -3,7 +3,8 @@
 module Suspension
   ( State (..),
     System (..),
-    calcLowerArmLength,
+    AxleConfig (..),
+    -- calcLowerArmLength,
     calcLowerArmProjectedLength,
     calcUpperArmProjectedLength,
     calcLowerArmAngle,
@@ -11,6 +12,7 @@ module Suspension
     calcUpperArmAxleMountLoc,
     calcState,
     calcInstantCenter,
+    extractAxle,
   )
 where
 
@@ -27,30 +29,51 @@ data State = State
 
 data System = Front | Rear
 
-calcLowerArmLength :: Config -> System -> Double
-calcLowerArmLength cfg sys = case sys of
-  Front -> calc3dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
-  Rear -> calc3dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
+data AxleConfig = AxleConfig
+  { upperArmFrameMountLoc :: Point,
+    upperArmAxleMountLoc :: Point,
+    lowerArmFrameMountLoc :: Point,
+    lowerArmAxleMountLoc :: Point
+  }
 
-calcLowerArmProjectedLength :: Config -> System -> Double
-calcLowerArmProjectedLength cfg sys = case sys of
-  Front -> calc2dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
-  Rear -> calc2dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
+extractAxle :: Config -> System -> AxleConfig
+extractAxle cfg sys =
+  case sys of
+    Front ->
+      AxleConfig
+        { upperArmFrameMountLoc = frontUpperArmFrameMountLoc cfg,
+          upperArmAxleMountLoc = frontUpperArmAxleMountLoc cfg,
+          lowerArmFrameMountLoc = frontLowerArmFrameMountLoc cfg,
+          lowerArmAxleMountLoc = frontLowerArmAxleMountLoc cfg
+        }
+    Rear ->
+      AxleConfig
+        { upperArmFrameMountLoc = rearUpperArmFrameMountLoc cfg,
+          upperArmAxleMountLoc = rearUpperArmAxleMountLoc cfg,
+          lowerArmFrameMountLoc = rearLowerArmFrameMountLoc cfg,
+          lowerArmAxleMountLoc = rearLowerArmAxleMountLoc cfg
+        }
 
-calcUpperArmProjectedLength :: Config -> System -> Double
-calcUpperArmProjectedLength cfg sys = case sys of
-  Front -> calc2dDistance (frontUpperArmFrameMountLoc cfg) (frontUpperArmAxleMountLoc cfg)
-  Rear -> calc2dDistance (rearUpperArmAxleMountLoc cfg) (rearUpperArmFrameMountLoc cfg)
+-- calcLowerArmLength :: Config -> System -> Double
+-- calcLowerArmLength cfg sys = case sys of
+--   Front -> calc3dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
+--   Rear -> calc3dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
 
-calcLowerArmAngle :: Config -> System -> Double
-calcLowerArmAngle cfg sys = case sys of
-  Front -> calcXZAngle (frontLowerArmAxleMountLoc cfg) (frontLowerArmFrameMountLoc cfg)
-  Rear -> calcXZAngle (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
+calcLowerArmProjectedLength :: AxleConfig -> Double
+calcLowerArmProjectedLength axlConfig =
+  calcProjectedDistance (lowerArmFrameMountLoc axlConfig) (lowerArmAxleMountLoc axlConfig)
 
-calcAxleMountsDistance :: Config -> System -> Double
-calcAxleMountsDistance cfg sys = case sys of
-  Front -> calc2dDistance (frontUpperArmAxleMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
-  Rear -> calc2dDistance (rearUpperArmAxleMountLoc cfg) (rearLowerArmAxleMountLoc cfg)
+calcUpperArmProjectedLength :: AxleConfig -> Double
+calcUpperArmProjectedLength axlCfg =
+  calcProjectedDistance (upperArmFrameMountLoc axlCfg) (upperArmAxleMountLoc axlCfg)
+
+calcLowerArmAngle :: AxleConfig -> Double
+calcLowerArmAngle axlCfg =
+  calcProjectedAngle (lowerArmAxleMountLoc axlCfg) (lowerArmFrameMountLoc axlCfg)
+
+calcAxleMountsDistance :: AxleConfig -> Double
+calcAxleMountsDistance axlCfg =
+  calcProjectedDistance (upperArmAxleMountLoc axlCfg) (lowerArmAxleMountLoc axlCfg)
 
 getCorrectMountSolution :: Point -> (Point, Point) -> Point
 getCorrectMountSolution prev (s1, s2) =
@@ -60,14 +83,12 @@ getCorrectMountSolution prev (s1, s2) =
     s2d = calc3dDistance prev s2
 
 -- Note: p0 is the lowerArmAxleMountLoc
-calcUpperArmAxleMountLoc :: Config -> System -> Point -> Point -> Point
-calcUpperArmAxleMountLoc cfg sys prev p0 = getCorrectMountSolution prev solutions
+calcUpperArmAxleMountLoc :: AxleConfig -> Point -> Point -> Point
+calcUpperArmAxleMountLoc axlCfg prev p0 = getCorrectMountSolution prev solutions
   where
-    p1 = case sys of
-      Front -> frontUpperArmFrameMountLoc cfg
-      Rear -> rearUpperArmFrameMountLoc cfg
-    r0 = calcAxleMountsDistance cfg sys
-    r1 = calcUpperArmProjectedLength cfg sys
+    p1 = upperArmFrameMountLoc axlCfg
+    r0 = calcAxleMountsDistance axlCfg
+    r1 = calcUpperArmProjectedLength axlCfg
     d = calcDistanceBetweenCenters p0 p1
     a = calcDistanceToRadicalLine r0 r1 d
     h = calcPerpendicularOffset r0 a
@@ -75,81 +96,41 @@ calcUpperArmAxleMountLoc cfg sys prev p0 = getCorrectMountSolution prev solution
     p2 = calcCenterLinePoint p0 u a
     solutions = calcSteppedPerpendicular p2 h u
 
-calcState :: Config -> System -> Point -> Double -> State
-calcState cfg sys prevUprArmAxleMountLoc lwrArmAngle = case sys of
-  Front ->
-    State
-      { lowerArmAngle = lwrArmAngle,
-        upperArmAxleMountPos = upprLoc,
-        lowerArmAxleMountPos = lwrLoc
-      }
-    where
-      lwrLoc =
-        Point
-          { x = x (frontLowerArmFrameMountLoc cfg) - lwrArmProjectedLength * cos lwrArmAngle,
-            y = y (frontLowerArmAxleMountLoc cfg),
-            z = z (frontLowerArmFrameMountLoc cfg) - lwrArmProjectedLength * sin lwrArmAngle
-          }
-      upprLoc = calcUpperArmAxleMountLoc cfg sys prevUprArmAxleMountLoc lwrLoc
-  Rear ->
-    State
-      { lowerArmAngle = lwrArmAngle,
-        upperArmAxleMountPos = upprLoc,
-        lowerArmAxleMountPos = lwrLoc
-      }
-    where
-      lwrLoc =
-        Point
-          { x = x (rearLowerArmFrameMountLoc cfg) - lwrArmProjectedLength * cos lwrArmAngle,
-            y = y (rearLowerArmAxleMountLoc cfg),
-            z = z (rearLowerArmFrameMountLoc cfg) - lwrArmProjectedLength * sin lwrArmAngle
-          }
-      upprLoc = calcUpperArmAxleMountLoc cfg sys prevUprArmAxleMountLoc lwrLoc
+calcState :: AxleConfig -> Point -> Double -> State
+calcState axlCfg prevUprArmAxleMountLoc lwrArmAngle =
+  State
+    { lowerArmAngle = lwrArmAngle,
+      upperArmAxleMountPos = upprLoc,
+      lowerArmAxleMountPos = lwrLoc
+    }
   where
-    lwrArmProjectedLength = calcLowerArmProjectedLength cfg sys
+    lwrLoc =
+      Point
+        { x = x (lowerArmFrameMountLoc axlCfg) - lwrArmProjectedLength * cos lwrArmAngle,
+          y = y (lowerArmAxleMountLoc axlCfg),
+          z = z (lowerArmFrameMountLoc axlCfg) - lwrArmProjectedLength * sin lwrArmAngle
+        }
+    lwrArmProjectedLength = calcLowerArmProjectedLength axlCfg
+    upprLoc = calcUpperArmAxleMountLoc axlCfg prevUprArmAxleMountLoc lwrLoc
 
-calcInstantCenter :: Config -> System -> State -> Point
-calcInstantCenter cfg sys state = case sys of
-  Front ->
-    Point
-      { x = xic,
-        y = 0,
-        z = zic
-      }
-    where
-      zlf = z (frontLowerArmFrameMountLoc cfg)
-      zla = z (lowerArmAxleMountPos state)
-      xlf = x (frontLowerArmFrameMountLoc cfg)
-      xla = x (lowerArmAxleMountPos state)
-      mLower = (zlf - zla) / (xlf - xla)
-      bLower = zla - mLower * xla
-
-      zuf = z (frontUpperArmFrameMountLoc cfg)
-      zua = z (upperArmAxleMountPos state)
-      xuf = x (frontUpperArmFrameMountLoc cfg)
-      xua = x (upperArmAxleMountPos state)
-      mUpper = (zuf - zua) / (xuf - xua)
-      bUpper = zua - mUpper * xua
-
-      xic = (bUpper - bLower) / (mLower - mUpper)
-      zic = mLower * xic + bLower
-  Rear ->
-    Point
-      { x = xic,
-        y = 0,
-        z = zic
-      }
+calcInstantCenter :: AxleConfig -> State -> Point
+calcInstantCenter axlCfg state =
+  Point
+    { x = xic,
+      y = 0,
+      z = zic
+    }
   where
-    zlf = z (rearLowerArmFrameMountLoc cfg)
+    zlf = z (lowerArmFrameMountLoc axlCfg)
     zla = z (lowerArmAxleMountPos state)
-    xlf = x (rearLowerArmFrameMountLoc cfg)
+    xlf = x (lowerArmFrameMountLoc axlCfg)
     xla = x (lowerArmAxleMountPos state)
     mLower = (zlf - zla) / (xlf - xla)
     bLower = zla - mLower * xla
 
-    zuf = z (rearUpperArmFrameMountLoc cfg)
+    zuf = z (upperArmFrameMountLoc axlCfg)
     zua = z (upperArmAxleMountPos state)
-    xuf = x (rearUpperArmFrameMountLoc cfg)
+    xuf = x (upperArmFrameMountLoc axlCfg)
     xua = x (upperArmAxleMountPos state)
     mUpper = (zuf - zua) / (xuf - xua)
     bUpper = zua - mUpper * xua

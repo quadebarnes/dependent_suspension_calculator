@@ -4,9 +4,9 @@ module Geometry
   ( Point (..),
     UnitVector (..),
     radToDeg,
-    calc2dDistance,
+    calcProjectedDistance,
     calc3dDistance,
-    calcXZAngle,
+    calcProjectedAngle,
     calcDistanceBetweenCenters,
     calcDistanceToRadicalLine,
     calcPerpendicularOffset,
@@ -38,8 +38,8 @@ data UnitVector = UnitVector
 radToDeg :: Double -> Double
 radToDeg rads = rads * (180 / pi)
 
-calc2dDistance :: Point -> Point -> Double
-calc2dDistance p1 p2 = sqrt (dx * dx + dz * dz)
+calcProjectedDistance :: Point -> Point -> Double
+calcProjectedDistance p1 p2 = sqrt (dx * dx + dz * dz)
   where
     dx = x p2 - x p1
     dz = z p2 - z p1
@@ -51,14 +51,14 @@ calc3dDistance p1 p2 = sqrt (dx * dx + dy * dy + dz * dz)
     dy = y p2 - y p1
     dz = z p2 - z p1
 
-calcXZAngle :: Point -> Point -> Double
-calcXZAngle p1 p2 = atan2 rise run
+calcProjectedAngle :: Point -> Point -> Double
+calcProjectedAngle p1 p2 = atan2 rise run
   where
     rise = z p2 - z p1
     run = x p2 - x p1
 
 calcDistanceBetweenCenters :: Point -> Point -> Double
-calcDistanceBetweenCenters p0 p1 = abs (calc2dDistance p1 p0)
+calcDistanceBetweenCenters p0 p1 = abs (calcProjectedDistance p1 p0)
 
 calcDistanceToRadicalLine :: Double -> Double -> Double -> Double
 calcDistanceToRadicalLine r0 r1 d = (r0 * r0 - r1 * r1 + d * d) / (2 * d)
