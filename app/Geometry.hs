@@ -14,6 +14,10 @@ module Geometry
     calcUnitVector,
     calcSteppedPerpendicular,
     setPointY,
+    calcAngleDifference,
+    applyOffset2d,
+    calcPointOffset,
+    calcRotatedOffset,
   )
 where
 
@@ -35,6 +39,11 @@ data UnitVector = UnitVector
     uvz :: Double
   }
   deriving (Show, Generic)
+
+data Offset2d = Offset2d
+  { offx :: Double,
+    offz :: Double
+  }
 
 radToDeg :: Double -> Double
 radToDeg rads = rads * (180 / pi)
@@ -110,4 +119,29 @@ setPointY p0 newY =
     { x = x p0,
       y = newY,
       z = z p0
+    }
+
+calcAngleDifference :: Double -> Double -> Double
+calcAngleDifference r0 r1 = r1 - r0
+
+calcPointOffset :: Point -> Point -> Offset2d
+calcPointOffset p0 p1 =
+  Offset2d
+    { offx = x p1 - x p0,
+      offz = z p1 - z p0
+    }
+
+calcRotatedOffset :: Offset2d -> Double -> Offset2d
+calcRotatedOffset o r0 =
+  Offset2d
+    { offx = offx o * cos r0 - offz o * sin r0,
+      offz = offz o * sin r0 + offz o * cos r0
+    }
+
+applyOffset2d :: Point -> Offset2d -> Point
+applyOffset2d p0 o =
+  Point
+    { x = x p0 + offx o,
+      y = y p0,
+      z = z p0 + offz o
     }

@@ -4,7 +4,6 @@ module Suspension
   ( State (..),
     System (..),
     AxleConfig (..),
-    -- calcLowerArmLength,
     calcLowerArmProjectedLength,
     calcUpperArmProjectedLength,
     calcLowerArmAngle,
@@ -13,6 +12,8 @@ module Suspension
     calcState,
     calcInstantCenter,
     extractAxle,
+    calcHousingOrientation,
+    calcAnti,
   )
 where
 
@@ -21,43 +22,52 @@ import GHC.Generics (Generic)
 import Geometry
 
 data State = State
-  { lowerArmAngle :: Double,
+  { sys :: System,
+    lowerArmAngle :: Double,
     upperArmAxleMountPos :: Point,
     lowerArmAxleMountPos :: Point
   }
   deriving (Show, Generic)
 
 data System = Front | Rear
+  deriving (Show)
 
 data AxleConfig = AxleConfig
-  { upperArmFrameMountLoc :: Point,
+  { system :: System,
+    axleCenter :: Point,
+    upperArmFrameMountLoc :: Point,
     upperArmAxleMountLoc :: Point,
     lowerArmFrameMountLoc :: Point,
     lowerArmAxleMountLoc :: Point
   }
+
+data AxleAntis = AxleAntis
+  { braking :: Double,
+    acceleration :: Double
+  }
+  deriving (Show)
 
 extractAxle :: Config -> System -> AxleConfig
 extractAxle cfg sys =
   case sys of
     Front ->
       AxleConfig
-        { upperArmFrameMountLoc = frontUpperArmFrameMountLoc cfg,
+        { system = Front,
+          axleCenter = Point 0 0 (wheelRollingRadius cfg),
+          upperArmFrameMountLoc = frontUpperArmFrameMountLoc cfg,
           upperArmAxleMountLoc = frontUpperArmAxleMountLoc cfg,
           lowerArmFrameMountLoc = frontLowerArmFrameMountLoc cfg,
           lowerArmAxleMountLoc = frontLowerArmAxleMountLoc cfg
         }
     Rear ->
       AxleConfig
-        { upperArmFrameMountLoc = rearUpperArmFrameMountLoc cfg,
+        { system = Rear,
+          axleCenter = Point (wheelbase cfg) 0 (wheelRollingRadius cfg),
+          upperArmFrameMountLoc = rearUpperArmFrameMountLoc cfg,
           upperArmAxleMountLoc = rearUpperArmAxleMountLoc cfg,
           lowerArmFrameMountLoc = rearLowerArmFrameMountLoc cfg,
           lowerArmAxleMountLoc = rearLowerArmAxleMountLoc cfg
         }
-
--- calcLowerArmLength :: Config -> System -> Double
--- calcLowerArmLength cfg sys = case sys of
---   Front -> calc3dDistance (frontLowerArmFrameMountLoc cfg) (frontLowerArmAxleMountLoc cfg)
---   Rear -> calc3dDistance (rearLowerArmAxleMountLoc cfg) (rearLowerArmFrameMountLoc cfg)
 
 calcLowerArmProjectedLength :: AxleConfig -> Double
 calcLowerArmProjectedLength axlConfig =
@@ -97,10 +107,20 @@ calcUpperArmAxleMountLoc axlCfg prev p0 = setPointY solution (y prev)
     solutions = calcSteppedPerpendicular p2 h u
     solution = getCorrectMountSolution prev solutions
 
+calcRestingState :: Config -> AxleConfig -> State
+calcRestingState cfg axlCfg =
+  State
+    { sys = system axlCfg,
+      lowerArmAngle = calcLowerArmAngle axlCfg,
+      upperArmAxleMountPos = upperArmAxleMountLoc axlCfg,
+      lowerArmAxleMountPos = lowerArmAxleMountLoc axlCfg
+    }
+
 calcState :: AxleConfig -> Point -> Double -> State
 calcState axlCfg prevUprArmAxleMountLoc lwrArmAngle =
   State
-    { lowerArmAngle = lwrArmAngle,
+    { sys = system axlCfg,
+      lowerArmAngle = lwrArmAngle,
       upperArmAxleMountPos = upprLoc,
       lowerArmAxleMountPos = lwrLoc
     }
@@ -138,3 +158,53 @@ calcInstantCenter axlCfg state =
 
     xic = (bUpper - bLower) / (mLower - mUpper)
     zic = mLower * xic + bLower
+
+calcHousingOrientation :: State -> Double
+calcHousingOrientation state = atan2 (zua - zla) (xua - xla)
+  where
+    xla = x (lowerArmAxleMountPos state)
+    xua = x (upperArmAxleMountPos state)
+    zla = z (lowerArmAxleMountPos state)
+    zua = z (upperArmAxleMountPos state)
+
+calcHousingOrientationChange :: Config -> AxleConfig -> State -> Double
+calcHousingOrientationChange cfg axlCfg state =
+  calcAngleDifference r1 r0
+  where
+    restingState = calcRestingState cfg axlCfg
+    r0 = calcHousingOrientation restingState
+    r1 = calcHousingOrientation state
+
+calcAxleCenter :: Config -> AxleConfig -> State -> Point
+calcAxleCenter cfg axlCfg state =
+  applyOffset2d pla rotatedOffset
+  where
+    pla = lowerArmAxleMountPos state
+    hr = calcHousingOrientationChange cfg axlCfg state
+    p0 =
+      case system axlCfg of
+        Front -> frontLowerArmAxleMountLoc cfg
+        Rear -> rearLowerArmAxleMountLoc cfg
+    p1 = axleCenter axlCfg
+    offset = calcPointOffset p0 p1
+    rotatedOffset = calcRotatedOffset offset hr
+
+calcAnti :: Config -> AxleConfig -> State -> AxleAntis
+calcAnti cfg axlCfg state =
+  AxleAntis
+    { braking = ((l * brakeB * slope) / hcg) * 100,
+      acceleration = ((l * accelB * slope) / hcg) * 100
+    }
+  where
+    l = wheelbase cfg
+    accelB = case system axlCfg of
+      Front -> driveBias cfg
+      Rear -> 1 - driveBias cfg
+    brakeB = case system axlCfg of
+      Front -> brakeBias cfg
+      Rear -> 1 - brakeBias cfg
+    ic = calcInstantCenter axlCfg state
+    axleCenter = calcAxleCenter cfg axlCfg state
+    xic = abs (x ic - x axleCenter)
+    slope = z ic / xic
+    hcg = sprungCGHeight cfg

@@ -6,27 +6,28 @@
   "massSprung": 3200.0,
   "massUnsprung": 800.0,
   "wheelRollingRadius": 17.25,
+  "sprungCGHeight": 28.0,
 
-  "frontShockAxleMountingLoc": { "x": 0.0, "y": 19.0, "z": 18.75 },
-  "frontShockFrameMountingLoc": { "x": 2.0, "y": 16.0, "z": 42.75 },
+  "frontShockAxleMountingLoc": { "x": -1.0, "y": 19.0, "z": 18.75 },
+  "frontShockFrameMountingLoc": { "x": 1.0, "y": 16.0, "z": 42.75 },
   "frontShockExtendedLength": 30.0,
   "frontShockCompressedLength": 18.0,
 
-  "rearShockAxleMountingLoc": { "x": 0.0, "y": 19.0, "z": 18.75 },
-  "rearShockFrameMountingLoc": { "x": 2.0, "y": 16.0, "z": 44.75 },
+  "rearShockAxleMountingLoc": { "x": -1.5, "y": 19.0, "z": 18.75 },
+  "rearShockFrameMountingLoc": { "x": 0.5, "y": 16.0, "z": 44.75 },
   "rearShockExtendedLength": 34.0,
   "rearShockCompressedLength": 20.0,
 
   "frontUpperArmFrameMountLoc": { "x": 18.0, "y": 0.0, "z": 16.75 },
-  "frontUpperArmAxleMountLoc": { "x": 0.0, "y": 0.0, "z": 20.75 },
+  "frontUpperArmAxleMountLoc": { "x": 1.5, "y": 0.0, "z": 20.75 },
   "frontLowerArmFrameMountLoc": { "x": 26.0, "y": -15.0, "z": 10.75 },
-  "frontLowerArmAxleMountLoc": { "x": 0.0, "y": -15.0, "z": 9.75 },
+  "frontLowerArmAxleMountLoc": { "x": -1.5, "y": -15.0, "z": 9.75 },
 
-  "frontTrackBarAxleMountLoc": { "x": 0.0, "y": 18.0, "z": 14.75 },
-  "frontTrackBarFrameMountLoc": { "x": 0.0, "y": -15.0, "z": 18.75 },
+  "frontTrackBarAxleMountLoc": { "x": -2.0, "y": 18.0, "z": 14.75 },
+  "frontTrackBarFrameMountLoc": { "x": -2.0, "y": -15.0, "z": 18.75 },
 
   "rearUpperArmFrameMountLoc": { "x": 20.0, "y": 6.0, "z": 18.75 },
-  "rearUpperArmAxleMountLoc": { "x": 0.0, "y": 16.0, "z": 22.75 },
+  "rearUpperArmAxleMountLoc": { "x": 1.0, "y": 16.0, "z": 22.75 },
   "rearLowerArmFrameMountLoc": { "x": 30.0, "y": -15.0, "z": 11.75 },
-  "rearLowerArmAxleMountLoc": { "x": 0.0, "y": -15.0, "z": 9.75 }
+  "rearLowerArmAxleMountLoc": { "x": 1.5, "y": -15.0, "z": 9.75 }
 }
