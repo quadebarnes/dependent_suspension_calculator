@@ -14,10 +14,14 @@ module Suspension
     extractAxle,
     calcHousingOrientation,
     calcAnti,
+    sweepStates,
+    sweepAnti,
+    calcAxleCenter,
   )
 where
 
 import Config
+import Debug.Trace (traceShowId)
 import GHC.Generics (Generic)
 import Geometry
 
@@ -169,7 +173,7 @@ calcHousingOrientation state = atan2 (zua - zla) (xua - xla)
 
 calcHousingOrientationChange :: Config -> AxleConfig -> State -> Double
 calcHousingOrientationChange cfg axlCfg state =
-  calcAngleDifference r1 r0
+  calcAngleDifference r0 r1
   where
     restingState = calcRestingState cfg axlCfg
     r0 = calcHousingOrientation restingState
@@ -177,7 +181,7 @@ calcHousingOrientationChange cfg axlCfg state =
 
 calcAxleCenter :: Config -> AxleConfig -> State -> Point
 calcAxleCenter cfg axlCfg state =
-  applyOffset2d pla rotatedOffset
+  setPointY (applyOffset2d pla rotatedOffset) 0
   where
     pla = lowerArmAxleMountPos state
     hr = calcHousingOrientationChange cfg axlCfg state
@@ -208,3 +212,20 @@ calcAnti cfg axlCfg state =
     xic = abs (x ic - x axleCenter)
     slope = z ic / xic
     hcg = sprungCGHeight cfg
+
+sweepStates :: AxleConfig -> Double -> Double -> Int -> [State]
+sweepStates axlCfg startAngle angleChange numSteps =
+  map calcSweepState sweepAngles
+  where
+    calcSweepState = calcState axlCfg startingUpperArmMountPos -- Look at this currying in action! You can't do this in python!
+    startingUpperArmMountPos = upperArmAxleMountLoc axlCfg
+    endAngle = startAngle + angleChange
+    stepSize = angleChange / fromIntegral numSteps
+    sweepAngles = [startAngle, startAngle + stepSize .. endAngle]
+
+sweepAnti :: Config -> AxleConfig -> Double -> Double -> Int -> [AxleAntis]
+sweepAnti cfg axlCfg startAngle angleChange numSteps =
+  map calcSweepAnti states
+  where
+    calcSweepAnti = calcAnti cfg axlCfg
+    states = sweepStates axlCfg startAngle angleChange numSteps

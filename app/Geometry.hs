@@ -3,7 +3,6 @@
 module Geometry
   ( Point (..),
     UnitVector (..),
-    radToDeg,
     calcProjectedDistance,
     calc3dDistance,
     calcProjectedAngle,
@@ -44,9 +43,7 @@ data Offset2d = Offset2d
   { offx :: Double,
     offz :: Double
   }
-
-radToDeg :: Double -> Double
-radToDeg rads = rads * (180 / pi)
+  deriving (Show)
 
 calcProjectedDistance :: Point -> Point -> Double
 calcProjectedDistance p1 p2 = sqrt (dx * dx + dz * dz)
@@ -135,7 +132,7 @@ calcRotatedOffset :: Offset2d -> Double -> Offset2d
 calcRotatedOffset o r0 =
   Offset2d
     { offx = offx o * cos r0 - offz o * sin r0,
-      offz = offz o * sin r0 + offz o * cos r0
+      offz = offx o * sin r0 + offz o * cos r0
     }
 
 applyOffset2d :: Point -> Offset2d -> Point
