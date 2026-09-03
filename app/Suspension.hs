@@ -215,13 +215,15 @@ calcAnti cfg axlCfg state =
 
 sweepStates :: AxleConfig -> Double -> Double -> Int -> [State]
 sweepStates axlCfg startAngle angleChange numSteps =
-  map calcSweepState sweepAngles
+  reverse (map calcSweepState droopSweepAngles) ++ map calcSweepState compressingSweepAngles
   where
-    calcSweepState = calcState axlCfg startingUpperArmMountPos -- Look at this currying in action! You can't do this in python!
+    calcSweepState = calcState axlCfg startingUpperArmMountPos
     startingUpperArmMountPos = upperArmAxleMountLoc axlCfg
-    endAngle = startAngle + angleChange
+    compressEndAngle = startAngle + angleChange
+    droopSweepAngle = startAngle - angleChange
     stepSize = angleChange / fromIntegral numSteps
-    sweepAngles = [startAngle, startAngle + stepSize .. endAngle]
+    compressingSweepAngles = [startAngle, startAngle + stepSize .. compressEndAngle]
+    droopSweepAngles = [startAngle - stepSize, (startAngle - stepSize) - stepSize .. droopSweepAngle]
 
 sweepAnti :: Config -> AxleConfig -> Double -> Double -> Int -> [AxleAntis]
 sweepAnti cfg axlCfg startAngle angleChange numSteps =
