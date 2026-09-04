@@ -21,7 +21,6 @@ module Suspension
 where
 
 import Config
-import Debug.Trace (traceShowId)
 import GHC.Generics (Generic)
 import Geometry
 
