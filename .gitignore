@@ -22,4 +22,5 @@ cabal.project.local~
 .HTF/
 .ghc.environment.*
 .venv/
-output/
+output/*
+!output/.gitkeep
