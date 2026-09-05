@@ -8,8 +8,8 @@ import Geometry (radToDeg)
 import Suspension
 import Text.Printf (printf)
 
-getAntisText :: System -> [AxleAntis] -> String
-getAntisText sys antis = unlines (header : formatedAntis)
+getAntisText :: [AxleAntis] -> String
+getAntisText antis = unlines (header : formatedAntis)
   where
     header = "Lower Arm Angle, Braking Anti, Acceleration Anti"
     formatedAntis = map formatAntis antis

@@ -112,8 +112,8 @@ calcUpperArmAxleMountLoc axlCfg prev p0 = setPointY solution (y prev)
     solutions = calcSteppedPerpendicular p2 h u
     solution = getCorrectMountSolution prev solutions
 
-calcRestingState :: Config -> AxleConfig -> State
-calcRestingState cfg axlCfg =
+calcRestingState :: AxleConfig -> State
+calcRestingState axlCfg =
   State
     { stateSystem = axlCfgSystem axlCfg,
       stateLowerArmAngle = calcLowerArmAngle axlCfg,
@@ -172,11 +172,11 @@ calcHousingOrientation state = atan2 (zua - zla) (xua - xla)
     zla = z (stateLowerArmAxleMountPos state)
     zua = z (stateUpperArmAxleMountPos state)
 
-calcHousingOrientationChange :: Config -> AxleConfig -> State -> Double
-calcHousingOrientationChange cfg axlCfg state =
+calcHousingOrientationChange :: AxleConfig -> State -> Double
+calcHousingOrientationChange axlCfg state =
   calcAngleDifference r0 r1
   where
-    restingState = calcRestingState cfg axlCfg
+    restingState = calcRestingState axlCfg
     r0 = calcHousingOrientation restingState
     r1 = calcHousingOrientation state
 
@@ -185,7 +185,7 @@ calcAxleCenter cfg axlCfg state =
   setPointY (applyOffset2d pla rotatedOffset) 0
   where
     pla = stateLowerArmAxleMountPos state
-    hr = calcHousingOrientationChange cfg axlCfg state
+    hr = calcHousingOrientationChange axlCfg state
     p0 =
       case axlCfgSystem axlCfg of
         Front -> configFrontLowerArmAxleMountLoc cfg
