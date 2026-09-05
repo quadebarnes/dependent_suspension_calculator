@@ -37,12 +37,12 @@ data System = Front | Rear
   deriving (Show)
 
 data AxleConfig = AxleConfig
-  { system :: System,
-    axleCenter :: Point,
-    upperArmFrameMountLoc :: Point,
-    upperArmAxleMountLoc :: Point,
-    lowerArmFrameMountLoc :: Point,
-    lowerArmAxleMountLoc :: Point
+  { axlCfgSystem :: System,
+    axlCfgAxleCenter :: Point,
+    axlCfgUpperArmFrameMountLoc :: Point,
+    axlCfgUpperArmAxleMountLoc :: Point,
+    axlCfgLowerArmFrameMountLoc :: Point,
+    axlCfgLowerArmAxleMountLoc :: Point
   }
 
 data AxleAntis = AxleAntis
@@ -57,38 +57,38 @@ extractAxle cfg sys =
   case sys of
     Front ->
       AxleConfig
-        { system = Front,
-          axleCenter = Point 0 0 (configWheelRollingRadius cfg),
-          upperArmFrameMountLoc = configFrontUpperArmFrameMountLoc cfg,
-          upperArmAxleMountLoc = configFrontUpperArmAxleMountLoc cfg,
-          lowerArmFrameMountLoc = configFrontLowerArmFrameMountLoc cfg,
-          lowerArmAxleMountLoc = configFrontLowerArmAxleMountLoc cfg
+        { axlCfgSystem = Front,
+          axlCfgAxleCenter = Point 0 0 (configWheelRollingRadius cfg),
+          axlCfgUpperArmFrameMountLoc = configFrontUpperArmFrameMountLoc cfg,
+          axlCfgUpperArmAxleMountLoc = configFrontUpperArmAxleMountLoc cfg,
+          axlCfgLowerArmFrameMountLoc = configFrontLowerArmFrameMountLoc cfg,
+          axlCfgLowerArmAxleMountLoc = configFrontLowerArmAxleMountLoc cfg
         }
     Rear ->
       AxleConfig
-        { system = Rear,
-          axleCenter = Point (configWheelbase cfg) 0 (configWheelRollingRadius cfg),
-          upperArmFrameMountLoc = configRearUpperArmFrameMountLoc cfg,
-          upperArmAxleMountLoc = configRearUpperArmAxleMountLoc cfg,
-          lowerArmFrameMountLoc = configRearLowerArmFrameMountLoc cfg,
-          lowerArmAxleMountLoc = configRearLowerArmAxleMountLoc cfg
+        { axlCfgSystem = Rear,
+          axlCfgAxleCenter = Point (configWheelbase cfg) 0 (configWheelRollingRadius cfg),
+          axlCfgUpperArmFrameMountLoc = configRearUpperArmFrameMountLoc cfg,
+          axlCfgUpperArmAxleMountLoc = configRearUpperArmAxleMountLoc cfg,
+          axlCfgLowerArmFrameMountLoc = configRearLowerArmFrameMountLoc cfg,
+          axlCfgLowerArmAxleMountLoc = configRearLowerArmAxleMountLoc cfg
         }
 
 calcLowerArmProjectedLength :: AxleConfig -> Double
 calcLowerArmProjectedLength axlConfig =
-  calcProjectedDistance (lowerArmFrameMountLoc axlConfig) (lowerArmAxleMountLoc axlConfig)
+  calcProjectedDistance (axlCfgLowerArmFrameMountLoc axlConfig) (axlCfgLowerArmAxleMountLoc axlConfig)
 
 calcUpperArmProjectedLength :: AxleConfig -> Double
 calcUpperArmProjectedLength axlCfg =
-  calcProjectedDistance (upperArmFrameMountLoc axlCfg) (upperArmAxleMountLoc axlCfg)
+  calcProjectedDistance (axlCfgUpperArmFrameMountLoc axlCfg) (axlCfgUpperArmAxleMountLoc axlCfg)
 
 calcLowerArmAngle :: AxleConfig -> Double
 calcLowerArmAngle axlCfg =
-  calcProjectedAngle (lowerArmAxleMountLoc axlCfg) (lowerArmFrameMountLoc axlCfg)
+  calcProjectedAngle (axlCfgLowerArmAxleMountLoc axlCfg) (axlCfgLowerArmFrameMountLoc axlCfg)
 
 calcAxleMountsDistance :: AxleConfig -> Double
 calcAxleMountsDistance axlCfg =
-  calcProjectedDistance (upperArmAxleMountLoc axlCfg) (lowerArmAxleMountLoc axlCfg)
+  calcProjectedDistance (axlCfgUpperArmAxleMountLoc axlCfg) (axlCfgLowerArmAxleMountLoc axlCfg)
 
 getCorrectMountSolution :: Point -> (Point, Point) -> Point
 getCorrectMountSolution prev (s1, s2) =
@@ -101,7 +101,7 @@ getCorrectMountSolution prev (s1, s2) =
 calcUpperArmAxleMountLoc :: AxleConfig -> Point -> Point -> Point
 calcUpperArmAxleMountLoc axlCfg prev p0 = setPointY solution (y prev)
   where
-    p1 = upperArmFrameMountLoc axlCfg
+    p1 = axlCfgUpperArmFrameMountLoc axlCfg
     r0 = calcAxleMountsDistance axlCfg
     r1 = calcUpperArmProjectedLength axlCfg
     d = calcDistanceBetweenCenters p0 p1
@@ -115,16 +115,16 @@ calcUpperArmAxleMountLoc axlCfg prev p0 = setPointY solution (y prev)
 calcRestingState :: Config -> AxleConfig -> State
 calcRestingState cfg axlCfg =
   State
-    { stateSystem = system axlCfg,
+    { stateSystem = axlCfgSystem axlCfg,
       stateLowerArmAngle = calcLowerArmAngle axlCfg,
-      stateUpperArmAxleMountPos = upperArmAxleMountLoc axlCfg,
-      stateLowerArmAxleMountPos = lowerArmAxleMountLoc axlCfg
+      stateUpperArmAxleMountPos = axlCfgUpperArmAxleMountLoc axlCfg,
+      stateLowerArmAxleMountPos = axlCfgLowerArmAxleMountLoc axlCfg
     }
 
 calcState :: AxleConfig -> Point -> Double -> State
 calcState axlCfg prevUprArmAxleMountLoc lwrArmAngle =
   State
-    { stateSystem = system axlCfg,
+    { stateSystem = axlCfgSystem axlCfg,
       stateLowerArmAngle = lwrArmAngle,
       stateUpperArmAxleMountPos = upprLoc,
       stateLowerArmAxleMountPos = lwrLoc
@@ -132,9 +132,9 @@ calcState axlCfg prevUprArmAxleMountLoc lwrArmAngle =
   where
     lwrLoc =
       Point
-        { x = x (lowerArmFrameMountLoc axlCfg) - lwrArmProjectedLength * cos lwrArmAngle,
-          y = y (lowerArmAxleMountLoc axlCfg),
-          z = z (lowerArmFrameMountLoc axlCfg) - lwrArmProjectedLength * sin lwrArmAngle
+        { x = x (axlCfgLowerArmFrameMountLoc axlCfg) - lwrArmProjectedLength * cos lwrArmAngle,
+          y = y (axlCfgLowerArmAxleMountLoc axlCfg),
+          z = z (axlCfgLowerArmFrameMountLoc axlCfg) - lwrArmProjectedLength * sin lwrArmAngle
         }
     lwrArmProjectedLength = calcLowerArmProjectedLength axlCfg
     upprLoc = calcUpperArmAxleMountLoc axlCfg prevUprArmAxleMountLoc lwrLoc
@@ -147,16 +147,16 @@ calcInstantCenter axlCfg state =
       z = zic
     }
   where
-    zlf = z (lowerArmFrameMountLoc axlCfg)
+    zlf = z (axlCfgLowerArmFrameMountLoc axlCfg)
     zla = z (stateLowerArmAxleMountPos state)
-    xlf = x (lowerArmFrameMountLoc axlCfg)
+    xlf = x (axlCfgLowerArmFrameMountLoc axlCfg)
     xla = x (stateLowerArmAxleMountPos state)
     mLower = (zlf - zla) / (xlf - xla)
     bLower = zla - mLower * xla
 
-    zuf = z (upperArmFrameMountLoc axlCfg)
+    zuf = z (axlCfgUpperArmFrameMountLoc axlCfg)
     zua = z (stateUpperArmAxleMountPos state)
-    xuf = x (upperArmFrameMountLoc axlCfg)
+    xuf = x (axlCfgUpperArmFrameMountLoc axlCfg)
     xua = x (stateUpperArmAxleMountPos state)
     mUpper = (zuf - zua) / (xuf - xua)
     bUpper = zua - mUpper * xua
@@ -187,10 +187,10 @@ calcAxleCenter cfg axlCfg state =
     pla = stateLowerArmAxleMountPos state
     hr = calcHousingOrientationChange cfg axlCfg state
     p0 =
-      case system axlCfg of
+      case axlCfgSystem axlCfg of
         Front -> configFrontLowerArmAxleMountLoc cfg
         Rear -> configRearLowerArmAxleMountLoc cfg
-    p1 = axleCenter axlCfg
+    p1 = axlCfgAxleCenter axlCfg
     offset = calcPointOffset p0 p1
     rotatedOffset = calcRotatedOffset offset hr
 
@@ -203,10 +203,10 @@ calcAnti cfg axlCfg state =
     }
   where
     l = configWheelbase cfg
-    accelB = case system axlCfg of
+    accelB = case axlCfgSystem axlCfg of
       Front -> configDriveBias cfg
       Rear -> 1 - configDriveBias cfg
-    brakeB = case system axlCfg of
+    brakeB = case axlCfgSystem axlCfg of
       Front -> configBrakeBias cfg
       Rear -> 1 - configBrakeBias cfg
     ic = calcInstantCenter axlCfg state
@@ -220,7 +220,7 @@ sweepStates axlCfg startAngle angleChange numSteps =
   reverse (map calcSweepState droopSweepAngles) ++ map calcSweepState compressingSweepAngles
   where
     calcSweepState = calcState axlCfg startingUpperArmMountPos
-    startingUpperArmMountPos = upperArmAxleMountLoc axlCfg
+    startingUpperArmMountPos = axlCfgUpperArmAxleMountLoc axlCfg
     compressEndAngle = startAngle + angleChange
     droopSweepAngle = startAngle - angleChange
     stepSize = angleChange / fromIntegral numSteps
