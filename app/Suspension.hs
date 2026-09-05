@@ -58,20 +58,20 @@ extractAxle cfg sys =
     Front ->
       AxleConfig
         { system = Front,
-          axleCenter = Point 0 0 (wheelRollingRadius cfg),
-          upperArmFrameMountLoc = frontUpperArmFrameMountLoc cfg,
-          upperArmAxleMountLoc = frontUpperArmAxleMountLoc cfg,
-          lowerArmFrameMountLoc = frontLowerArmFrameMountLoc cfg,
-          lowerArmAxleMountLoc = frontLowerArmAxleMountLoc cfg
+          axleCenter = Point 0 0 (configWheelRollingRadius cfg),
+          upperArmFrameMountLoc = configFrontUpperArmFrameMountLoc cfg,
+          upperArmAxleMountLoc = configFrontUpperArmAxleMountLoc cfg,
+          lowerArmFrameMountLoc = configFrontLowerArmFrameMountLoc cfg,
+          lowerArmAxleMountLoc = configFrontLowerArmAxleMountLoc cfg
         }
     Rear ->
       AxleConfig
         { system = Rear,
-          axleCenter = Point (wheelbase cfg) 0 (wheelRollingRadius cfg),
-          upperArmFrameMountLoc = rearUpperArmFrameMountLoc cfg,
-          upperArmAxleMountLoc = rearUpperArmAxleMountLoc cfg,
-          lowerArmFrameMountLoc = rearLowerArmFrameMountLoc cfg,
-          lowerArmAxleMountLoc = rearLowerArmAxleMountLoc cfg
+          axleCenter = Point (configWheelbase cfg) 0 (configWheelRollingRadius cfg),
+          upperArmFrameMountLoc = configRearUpperArmFrameMountLoc cfg,
+          upperArmAxleMountLoc = configRearUpperArmAxleMountLoc cfg,
+          lowerArmFrameMountLoc = configRearLowerArmFrameMountLoc cfg,
+          lowerArmAxleMountLoc = configRearLowerArmAxleMountLoc cfg
         }
 
 calcLowerArmProjectedLength :: AxleConfig -> Double
@@ -188,8 +188,8 @@ calcAxleCenter cfg axlCfg state =
     hr = calcHousingOrientationChange cfg axlCfg state
     p0 =
       case system axlCfg of
-        Front -> frontLowerArmAxleMountLoc cfg
-        Rear -> rearLowerArmAxleMountLoc cfg
+        Front -> configFrontLowerArmAxleMountLoc cfg
+        Rear -> configRearLowerArmAxleMountLoc cfg
     p1 = axleCenter axlCfg
     offset = calcPointOffset p0 p1
     rotatedOffset = calcRotatedOffset offset hr
@@ -202,18 +202,18 @@ calcAnti cfg axlCfg state =
       acceleration = ((l * accelB * slope) / hcg) * 100
     }
   where
-    l = wheelbase cfg
+    l = configWheelbase cfg
     accelB = case system axlCfg of
-      Front -> driveBias cfg
-      Rear -> 1 - driveBias cfg
+      Front -> configDriveBias cfg
+      Rear -> 1 - configDriveBias cfg
     brakeB = case system axlCfg of
-      Front -> brakeBias cfg
-      Rear -> 1 - brakeBias cfg
+      Front -> configBrakeBias cfg
+      Rear -> 1 - configBrakeBias cfg
     ic = calcInstantCenter axlCfg state
     axleCenter = calcAxleCenter cfg axlCfg state
     xic = abs (x ic - x axleCenter)
     slope = z ic / xic
-    hcg = sprungCGHeight cfg
+    hcg = configSprungCGHeight cfg
 
 sweepStates :: AxleConfig -> Double -> Double -> Int -> [State]
 sweepStates axlCfg startAngle angleChange numSteps =
