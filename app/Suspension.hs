@@ -46,9 +46,9 @@ data AxleConfig = AxleConfig
   }
 
 data AxleAntis = AxleAntis
-  { lwrArmAngle :: Double,
-    braking :: Double,
-    acceleration :: Double
+  { axlAntisLwrArmAngle :: Double,
+    axlAntisBraking :: Double,
+    axlAntisAcceleration :: Double
   }
   deriving (Show)
 
@@ -197,9 +197,9 @@ calcAxleCenter cfg axlCfg state =
 calcAnti :: Config -> AxleConfig -> State -> AxleAntis
 calcAnti cfg axlCfg state =
   AxleAntis
-    { lwrArmAngle = stateLowerArmAngle state,
-      braking = ((l * brakeB * slope) / hcg) * 100,
-      acceleration = ((l * accelB * slope) / hcg) * 100
+    { axlAntisLwrArmAngle = stateLowerArmAngle state,
+      axlAntisBraking = ((l * brakeB * slope) / hcg) * 100,
+      axlAntisAcceleration = ((l * accelB * slope) / hcg) * 100
     }
   where
     l = configWheelbase cfg

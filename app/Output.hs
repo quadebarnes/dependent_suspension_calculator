@@ -18,7 +18,7 @@ formatAntis :: AxleAntis -> String
 formatAntis antis =
   intercalate "," vals
   where
-    armAngle = printf "%.6f" (radToDeg (lwrArmAngle antis)) :: String
-    brake = printf "%.6f" (braking antis) :: String
-    accel = printf "%.6f" (acceleration antis) :: String
+    armAngle = printf "%.6f" (radToDeg (axlAntisLwrArmAngle antis)) :: String
+    brake = printf "%.6f" (axlAntisBraking antis) :: String
+    accel = printf "%.6f" (axlAntisAcceleration antis) :: String
     vals = [armAngle, brake, accel]
