@@ -4,6 +4,7 @@ module Suspension
   ( State (..),
     System (..),
     AxleConfig (..),
+    AxleAntis (..),
     calcLowerArmProjectedLength,
     calcUpperArmProjectedLength,
     calcLowerArmAngle,
@@ -45,7 +46,8 @@ data AxleConfig = AxleConfig
   }
 
 data AxleAntis = AxleAntis
-  { braking :: Double,
+  { lwrArmAngle :: Double,
+    braking :: Double,
     acceleration :: Double
   }
   deriving (Show)
@@ -195,7 +197,8 @@ calcAxleCenter cfg axlCfg state =
 calcAnti :: Config -> AxleConfig -> State -> AxleAntis
 calcAnti cfg axlCfg state =
   AxleAntis
-    { braking = ((l * brakeB * slope) / hcg) * 100,
+    { lwrArmAngle = lowerArmAngle state,
+      braking = ((l * brakeB * slope) / hcg) * 100,
       acceleration = ((l * accelB * slope) / hcg) * 100
     }
   where

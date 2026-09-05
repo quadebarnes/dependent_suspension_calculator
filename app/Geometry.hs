@@ -17,6 +17,7 @@ module Geometry
     applyOffset2d,
     calcPointOffset,
     calcRotatedOffset,
+    radToDeg,
   )
 where
 
@@ -44,6 +45,9 @@ data Offset2d = Offset2d
     offz :: Double
   }
   deriving (Show)
+
+radToDeg :: Double -> Double
+radToDeg rads = rads * (180 / pi)
 
 calcProjectedDistance :: Point -> Point -> Double
 calcProjectedDistance p1 p2 = sqrt (dx * dx + dz * dz)
