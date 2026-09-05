@@ -26,10 +26,10 @@ import GHC.Generics (Generic)
 import Geometry
 
 data State = State
-  { sys :: System,
-    lowerArmAngle :: Double,
-    upperArmAxleMountPos :: Point,
-    lowerArmAxleMountPos :: Point
+  { stateSystem :: System,
+    stateLowerArmAngle :: Double,
+    stateUpperArmAxleMountPos :: Point,
+    stateLowerArmAxleMountPos :: Point
   }
   deriving (Show, Generic)
 
@@ -115,19 +115,19 @@ calcUpperArmAxleMountLoc axlCfg prev p0 = setPointY solution (y prev)
 calcRestingState :: Config -> AxleConfig -> State
 calcRestingState cfg axlCfg =
   State
-    { sys = system axlCfg,
-      lowerArmAngle = calcLowerArmAngle axlCfg,
-      upperArmAxleMountPos = upperArmAxleMountLoc axlCfg,
-      lowerArmAxleMountPos = lowerArmAxleMountLoc axlCfg
+    { stateSystem = system axlCfg,
+      stateLowerArmAngle = calcLowerArmAngle axlCfg,
+      stateUpperArmAxleMountPos = upperArmAxleMountLoc axlCfg,
+      stateLowerArmAxleMountPos = lowerArmAxleMountLoc axlCfg
     }
 
 calcState :: AxleConfig -> Point -> Double -> State
 calcState axlCfg prevUprArmAxleMountLoc lwrArmAngle =
   State
-    { sys = system axlCfg,
-      lowerArmAngle = lwrArmAngle,
-      upperArmAxleMountPos = upprLoc,
-      lowerArmAxleMountPos = lwrLoc
+    { stateSystem = system axlCfg,
+      stateLowerArmAngle = lwrArmAngle,
+      stateUpperArmAxleMountPos = upprLoc,
+      stateLowerArmAxleMountPos = lwrLoc
     }
   where
     lwrLoc =
@@ -148,16 +148,16 @@ calcInstantCenter axlCfg state =
     }
   where
     zlf = z (lowerArmFrameMountLoc axlCfg)
-    zla = z (lowerArmAxleMountPos state)
+    zla = z (stateLowerArmAxleMountPos state)
     xlf = x (lowerArmFrameMountLoc axlCfg)
-    xla = x (lowerArmAxleMountPos state)
+    xla = x (stateLowerArmAxleMountPos state)
     mLower = (zlf - zla) / (xlf - xla)
     bLower = zla - mLower * xla
 
     zuf = z (upperArmFrameMountLoc axlCfg)
-    zua = z (upperArmAxleMountPos state)
+    zua = z (stateUpperArmAxleMountPos state)
     xuf = x (upperArmFrameMountLoc axlCfg)
-    xua = x (upperArmAxleMountPos state)
+    xua = x (stateUpperArmAxleMountPos state)
     mUpper = (zuf - zua) / (xuf - xua)
     bUpper = zua - mUpper * xua
 
@@ -167,10 +167,10 @@ calcInstantCenter axlCfg state =
 calcHousingOrientation :: State -> Double
 calcHousingOrientation state = atan2 (zua - zla) (xua - xla)
   where
-    xla = x (lowerArmAxleMountPos state)
-    xua = x (upperArmAxleMountPos state)
-    zla = z (lowerArmAxleMountPos state)
-    zua = z (upperArmAxleMountPos state)
+    xla = x (stateLowerArmAxleMountPos state)
+    xua = x (stateUpperArmAxleMountPos state)
+    zla = z (stateLowerArmAxleMountPos state)
+    zua = z (stateUpperArmAxleMountPos state)
 
 calcHousingOrientationChange :: Config -> AxleConfig -> State -> Double
 calcHousingOrientationChange cfg axlCfg state =
@@ -184,7 +184,7 @@ calcAxleCenter :: Config -> AxleConfig -> State -> Point
 calcAxleCenter cfg axlCfg state =
   setPointY (applyOffset2d pla rotatedOffset) 0
   where
-    pla = lowerArmAxleMountPos state
+    pla = stateLowerArmAxleMountPos state
     hr = calcHousingOrientationChange cfg axlCfg state
     p0 =
       case system axlCfg of
@@ -197,7 +197,7 @@ calcAxleCenter cfg axlCfg state =
 calcAnti :: Config -> AxleConfig -> State -> AxleAntis
 calcAnti cfg axlCfg state =
   AxleAntis
-    { lwrArmAngle = lowerArmAngle state,
+    { lwrArmAngle = stateLowerArmAngle state,
       braking = ((l * brakeB * slope) / hcg) * 100,
       acceleration = ((l * accelB * slope) / hcg) * 100
     }
