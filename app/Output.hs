@@ -11,7 +11,7 @@ import Text.Printf (printf)
 getAntisText :: [AxleAntis] -> String
 getAntisText antis = unlines (header : formatedAntis)
   where
-    header = "Lower Arm Angle, Braking Anti, Acceleration Anti"
+    header = "Lower Arm Angle,Braking Anti,Acceleration Anti"
     formatedAntis = map formatAntis antis
 
 formatAntis :: AxleAntis -> String
