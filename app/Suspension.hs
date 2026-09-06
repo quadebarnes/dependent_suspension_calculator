@@ -18,6 +18,7 @@ module Suspension
     sweepStates,
     sweepAnti,
     calcAxleCenter,
+    calcTravel,
   )
 where
 
@@ -233,3 +234,11 @@ sweepAnti cfg axlCfg startAngle angleChange numSteps =
   where
     calcSweepAnti = calcAnti cfg axlCfg
     states = sweepStates axlCfg startAngle angleChange numSteps
+
+calcTravel :: AxleConfig -> Double -> Double
+calcTravel axlCfg lwrArmAngle =
+  a * tan theta
+  where
+    restingState = calcRestingState axlCfg
+    a = calcLowerArmProjectedLength axlCfg
+    theta = lwrArmAngle - stateLowerArmAngle restingState

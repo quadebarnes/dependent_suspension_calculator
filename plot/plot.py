@@ -1,10 +1,11 @@
 import csv
 import sys
 
-import matplotlib
-
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+# import matplotlib
+# matplotlib.use("Agg")
+from matplotlib.ticker import MultipleLocator
 
 
 def validPath(path):
@@ -25,13 +26,26 @@ def getData(path):
 
 
 def plotAntis(data, outPath):
-    armAngleVals = [row["Lower Arm Angle"] for row in data]
-    brakeVals = [row["Braking Anti"] for row in data]
-    accelVals = [row["Acceleration Anti"] for row in data]
+    travel = [float(row["Travel"]) for row in data]
+    brakeVals = [float(row["Braking Anti"]) for row in data]
+    accelVals = [float(row["Acceleration Anti"]) for row in data]
 
-    plt.plot(armAngleVals, brakeVals, label="Braking Anti")
-    plt.plot(armAngleVals, accelVals, label="Acceleration Anti")
-    plt.savefig(outPath)
+    fig, ax = plt.subplots()
+
+    ax.plot(travel, brakeVals, label="Braking Anti")
+    ax.plot(travel, accelVals, label="Acceleration Anti")
+
+    plt.title("Anti Values Across Travel")
+    plt.legend()
+    plt.grid(True)
+
+    ax.set_xlabel("Axle Travel (inches)")
+    ax.set_ylabel("Anti Value (%)")
+
+    ax.axhspan(50, 65, alpha=0.1)
+
+    fig.savefig(outPath)
+    # plt.show()
 
 
 def main():

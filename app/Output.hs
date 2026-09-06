@@ -8,17 +8,17 @@ import Geometry (radToDeg)
 import Suspension
 import Text.Printf (printf)
 
-getAntisText :: [AxleAntis] -> String
-getAntisText antis = unlines (header : formatedAntis)
+getAntisText :: AxleConfig -> [AxleAntis] -> String
+getAntisText axlCfg antis = unlines (header : formatedAntis)
   where
-    header = "Lower Arm Angle,Braking Anti,Acceleration Anti"
-    formatedAntis = map formatAntis antis
+    header = "Travel,Braking Anti,Acceleration Anti"
+    formatedAntis = map (formatAntis axlCfg) antis
 
-formatAntis :: AxleAntis -> String
-formatAntis antis =
+formatAntis :: AxleConfig -> AxleAntis -> String
+formatAntis axlCfg antis =
   intercalate "," vals
   where
-    armAngle = printf "%.6f" (radToDeg (axlAntisLwrArmAngle antis)) :: String
+    travel = printf "%.6f" (calcTravel axlCfg (axlAntisLwrArmAngle antis)) :: String
     brake = printf "%.6f" (axlAntisBraking antis) :: String
     accel = printf "%.6f" (axlAntisAcceleration antis) :: String
-    vals = [armAngle, brake, accel]
+    vals = [travel, brake, accel]

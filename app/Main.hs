@@ -10,7 +10,7 @@ main = do
   result <- eitherDecodeFileStrict "config.json" :: IO (Either String Config)
   case result of
     Left err -> putStrLn err
-    Right rawConfig -> writeFile loc (getAntisText antis)
+    Right rawConfig -> writeFile loc (getAntisText axleConfig antis)
       where
         config = normalize rawConfig
         axleConfig = extractAxle config Rear
