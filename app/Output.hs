@@ -4,7 +4,6 @@ module Output
 where
 
 import Data.List (intercalate)
-import Geometry (radToDeg)
 import Suspension
 import Text.Printf (printf)
 

@@ -32,8 +32,68 @@ def plotAntis(data, outPath):
 
     fig, ax = plt.subplots()
 
-    ax.plot(travel, brakeVals, label="Braking Anti")
-    ax.plot(travel, accelVals, label="Acceleration Anti")
+    ax.plot(travel, brakeVals, label="Braking Anti", color="tab:blue")
+    ax.plot(travel, accelVals, label="Acceleration Anti", color="tab:orange")
+
+    restingIndex = travel.index(0)
+    startX = travel[0]
+    endX = travel[-1]
+    brakeRestingVal = brakeVals[restingIndex]
+    brakeStartVal = brakeVals[0]
+    brakeEndVal = brakeVals[-1]
+    accelRestingVal = accelVals[restingIndex]
+    accelStartVal = accelVals[0]
+    accelEndVal = accelVals[-1]
+
+    ax.plot(0, brakeRestingVal, "o", ms=4, color="tab:blue")
+    ax.plot(startX, brakeStartVal, "o", ms=4, color="tab:blue")
+    ax.plot(endX, brakeEndVal, "o", ms=4, color="tab:blue")
+    ax.plot(0, accelRestingVal, "o", ms=4, color="tab:orange")
+    ax.plot(startX, accelStartVal, "o", ms=4, color="tab:orange")
+    ax.plot(endX, accelEndVal, "o", ms=4, color="tab:orange")
+
+    ax.annotate(
+        f"{brakeRestingVal:.2f}%",
+        (0, brakeRestingVal),
+        textcoords="offset points",
+        xytext=(9, 14),
+        fontsize=9,
+    )
+    ax.annotate(
+        f"{brakeStartVal:.2f}%",
+        (startX, brakeStartVal),
+        textcoords="offset points",
+        xytext=(9, 14),
+        fontsize=9,
+    )
+    ax.annotate(
+        f"{brakeEndVal:.2f}%",
+        (endX, brakeEndVal),
+        textcoords="offset points",
+        xytext=(9, 14),
+        fontsize=9,
+    )
+    ax.annotate(
+        f"{accelRestingVal:.2f}%",
+        (0, accelRestingVal),
+        textcoords="offset points",
+        xytext=(9, 14),
+        fontsize=9,
+    )
+    ax.annotate(
+        f"{accelStartVal:.2f}%",
+        (startX, accelStartVal),
+        textcoords="offset points",
+        xytext=(9, 14),
+        fontsize=9,
+    )
+    ax.annotate(
+        f"{accelEndVal:.2f}%",
+        (endX, accelEndVal),
+        textcoords="offset points",
+        xytext=(9, 14),
+        fontsize=9,
+    )
 
     plt.title("Anti Values Across Travel")
     plt.legend()
