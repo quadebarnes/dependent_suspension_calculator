@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 # import matplotlib
 # matplotlib.use("Agg")
-from matplotlib.ticker import MultipleLocator
 
 
 def validPath(path):
