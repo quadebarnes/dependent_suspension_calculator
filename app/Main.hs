@@ -5,21 +5,28 @@ import Data.Aeson (eitherDecodeFileStrict)
 import Output
 import Suspension
 
+calcAntis :: Config -> System -> ([AxleAntis], AxleConfig)
+calcAntis cfg sys =
+  (sweepAnti cfg axleConfig lwrArmAngle angleChange steps, axleConfig)
+  where
+    axleConfig = extractAxle cfg sys
+    lwrArmAngle = calcLowerArmAngle axleConfig
+    steps = 50
+    angleChange = 0.20943951023931953
+
+calcEverything :: Config -> String
+calcEverything cfg =
+  antisText
+  where
+    (antis, axleConfig) = calcAntis cfg Front
+    antisText = getAntisText axleConfig antis
+
 main :: IO ()
 main = do
   result <- eitherDecodeFileStrict "config.json" :: IO (Either String Config)
   case result of
     Left err -> putStrLn err
-    Right rawConfig -> writeFile loc (getAntisText axleConfig antis)
+    Right rawConfig -> writeFile loc (calcEverything config)
       where
         config = normalize rawConfig
-        axleConfig = extractAxle config Rear
-        lwrArmAngle = calcLowerArmAngle axleConfig
-        -- previousUpperArmMountPos = upperArmAxleMountLoc axleConfig
-        -- state = calcState axleConfig previousUpperArmMountPos lwrArmAngle
-        -- ic = calcInstantCenter axleConfig state
-        -- anti = calcAnti config axleConfig state
-        -- states = sweepStates axleConfig lwrArmAngle 0.20943951023931953 50
-        -- axleCenters = map (calcAxleCenter config axleConfig) states
-        antis = sweepAnti config axleConfig lwrArmAngle 0.20943951023931953 50
         loc = "output/results.csv"
