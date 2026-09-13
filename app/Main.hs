@@ -5,21 +5,26 @@ import Data.Aeson (eitherDecodeFileStrict)
 import Output
 import Suspension
 
-calcAntis :: Config -> System -> ([AxleAntis], AxleConfig)
-calcAntis cfg sys =
-  (sweepAnti cfg axleConfig lwrArmAngle angleChange steps, axleConfig)
-  where
-    axleConfig = extractAxle cfg sys
-    lwrArmAngle = calcLowerArmAngle axleConfig
-    steps = 50
-    angleChange = 0.20943951023931953
-
 calcEverything :: Config -> String
 calcEverything cfg =
-  antisText
+  output
   where
-    (antis, axleConfig) = calcAntis cfg Front
-    antisText = getAntisText axleConfig antis
+    sys = Front
+    axleConfig = extractAxle cfg sys
+    steps = 50
+    angleChange = 0.20943951023931953
+    lwrArmAngle = calcLowerArmAngle axleConfig
+
+    states = sweepStates axleConfig lwrArmAngle angleChange steps
+
+    travels = sweepTravel axleConfig states
+    antis = sweepAnti cfg axleConfig states
+    (brakeAntis, accelAntis) = splitAntis antis
+
+    outputLines = mergeOutputColumns [] "Travel" travels
+    outputLines' = mergeOutputColumns outputLines "Braking Anti" brakeAntis
+    outputLines'' = mergeOutputColumns outputLines' "Acceleration Anti" accelAntis
+    output = mergeLines outputLines''
 
 main :: IO ()
 main = do
