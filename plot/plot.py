@@ -1,27 +1,22 @@
 import csv
 import sys
 
+import matplotlib
 import matplotlib.pyplot as plt
 
-# import matplotlib
-# matplotlib.use("Agg")
-
-
-def validPath(path):
-    try:
-        open(path)
-    except FileNotFoundError as e:
-        print(e)
+matplotlib.use("Agg")
 
 
 def argsValid(args):
-    if len(args) == 3:
-        return map(validPath, args[1:])
+    return len(args) == 3
 
 
 def getData(path):
-    with open(path) as file:
-        return [row for row in csv.DictReader(file)]
+    try:
+        with open(path) as file:
+            return [row for row in csv.DictReader(file)]
+    except FileNotFoundError as e:
+        print(e)
 
 
 def plotAntis(data, outPath):
@@ -104,7 +99,6 @@ def plotAntis(data, outPath):
     ax.axhspan(50, 65, alpha=0.1)
 
     fig.savefig(outPath)
-    # plt.show()
 
 
 def main():
