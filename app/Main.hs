@@ -13,11 +13,11 @@ calcEverything cfg =
     axleConfig = extractAxle cfg sys
     steps = 50
     angleChange = 0.20943951023931953
-    lwrArmAngle = calcLowerArmAngle axleConfig
+    lwrArmAngle = calcRestingLwrArmAngle axleConfig
 
     states = sweepStates axleConfig lwrArmAngle angleChange steps
 
-    travels = sweepTravel axleConfig states
+    travels = sweepTrvl axleConfig states
     antis = sweepAnti cfg axleConfig states
     (brakeAntis, accelAntis) = splitAntis antis
 

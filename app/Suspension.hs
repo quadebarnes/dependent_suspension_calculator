@@ -5,20 +5,14 @@ module Suspension
     System (..),
     AxleConfig (..),
     AxleAntis (..),
-    calcUpperArmProjectedLength,
-    calcLowerArmAngle,
-    calcAxleMountsDistance,
-    calcUpperArmAxleMountLoc,
+    calcRestingLwrArmAngle,
     calcState,
-    calcInstantCenter,
     extractAxle,
-    calcHousingOrientation,
     calcAnti,
     sweepStates,
     sweepAnti,
-    calcAxleCenter,
-    calcTravel,
-    sweepTravel,
+    getTrvl,
+    sweepTrvl,
   )
 where
 
@@ -79,45 +73,45 @@ calcRestingLwrArmProjLen :: AxleConfig -> Double
 calcRestingLwrArmProjLen axlConfig =
   calcProjectedDistance (axlCfgLowerArmFrameMountLoc axlConfig) (axlCfgLowerArmAxleMountLoc axlConfig)
 
-calcUpperArmProjectedLength :: AxleConfig -> Double
-calcUpperArmProjectedLength axlCfg =
+calcRestingUpprArmProjLen :: AxleConfig -> Double
+calcRestingUpprArmProjLen axlCfg =
   calcProjectedDistance (axlCfgUpperArmFrameMountLoc axlCfg) (axlCfgUpperArmAxleMountLoc axlCfg)
 
-calcLowerArmAngle :: AxleConfig -> Double
-calcLowerArmAngle axlCfg =
+calcRestingLwrArmAngle :: AxleConfig -> Double
+calcRestingLwrArmAngle axlCfg =
   calcProjectedAngle (axlCfgLowerArmAxleMountLoc axlCfg) (axlCfgLowerArmFrameMountLoc axlCfg)
 
-calcAxleMountsDistance :: AxleConfig -> Double
-calcAxleMountsDistance axlCfg =
+calcAxlMntsDist :: AxleConfig -> Double
+calcAxlMntsDist axlCfg =
   calcProjectedDistance (axlCfgUpperArmAxleMountLoc axlCfg) (axlCfgLowerArmAxleMountLoc axlCfg)
 
-getCorrectMountSolution :: Point -> (Point, Point) -> Point
-getCorrectMountSolution prev (s1, s2) =
+choseMntSolution :: Point -> (Point, Point) -> Point
+choseMntSolution prev (s1, s2) =
   if s1d < s2d then s1 else s2
   where
     s1d = calc3dDistance prev s1
     s2d = calc3dDistance prev s2
 
 -- Note: p0 is the lowerArmAxleMountLoc
-calcUpperArmAxleMountLoc :: AxleConfig -> Point -> Point -> Point
-calcUpperArmAxleMountLoc axlCfg prev p0 = setPointY solution (y prev)
+getUpprArmAxlMntLoc :: AxleConfig -> Point -> Point -> Point
+getUpprArmAxlMntLoc axlCfg prev p0 = setPointY solution (y prev)
   where
     p1 = axlCfgUpperArmFrameMountLoc axlCfg
-    r0 = calcAxleMountsDistance axlCfg
-    r1 = calcUpperArmProjectedLength axlCfg
+    r0 = calcAxlMntsDist axlCfg
+    r1 = calcRestingUpprArmProjLen axlCfg
     d = calcDistanceBetweenCenters p0 p1
     a = calcDistanceToRadicalLine r0 r1 d
     h = calcPerpendicularOffset r0 a
     u = calcUnitVector p0 p1
     p2 = calcCenterLinePoint p0 u a
     solutions = calcSteppedPerpendicular p2 h u
-    solution = getCorrectMountSolution prev solutions
+    solution = choseMntSolution prev solutions
 
 calcRestingState :: AxleConfig -> State
 calcRestingState axlCfg =
   State
     { stateSystem = axlCfgSystem axlCfg,
-      stateLowerArmAngle = calcLowerArmAngle axlCfg,
+      stateLowerArmAngle = calcRestingLwrArmAngle axlCfg,
       stateUpperArmAxleMountPos = axlCfgUpperArmAxleMountLoc axlCfg,
       stateLowerArmAxleMountPos = axlCfgLowerArmAxleMountLoc axlCfg
     }
@@ -138,10 +132,10 @@ calcState axlCfg prevUprArmAxleMountLoc lwrArmAngle =
           z = z (axlCfgLowerArmFrameMountLoc axlCfg) - lwrArmProjectedLength * sin lwrArmAngle
         }
     lwrArmProjectedLength = calcRestingLwrArmProjLen axlCfg
-    upprLoc = calcUpperArmAxleMountLoc axlCfg prevUprArmAxleMountLoc lwrLoc
+    upprLoc = getUpprArmAxlMntLoc axlCfg prevUprArmAxleMountLoc lwrLoc
 
-calcInstantCenter :: AxleConfig -> State -> Point
-calcInstantCenter axlCfg state =
+getIC :: AxleConfig -> State -> Point
+getIC axlCfg state =
   Point
     { x = xic,
       y = 0,
@@ -165,28 +159,28 @@ calcInstantCenter axlCfg state =
     xic = (bUpper - bLower) / (mLower - mUpper)
     zic = mLower * xic + bLower
 
-calcHousingOrientation :: State -> Double
-calcHousingOrientation state = atan2 (zua - zla) (xua - xla)
+getHousignOrient :: State -> Double
+getHousignOrient state = atan2 (zua - zla) (xua - xla)
   where
     xla = x (stateLowerArmAxleMountPos state)
     xua = x (stateUpperArmAxleMountPos state)
     zla = z (stateLowerArmAxleMountPos state)
     zua = z (stateUpperArmAxleMountPos state)
 
-calcHousingOrientationChange :: AxleConfig -> State -> Double
-calcHousingOrientationChange axlCfg state =
+getHousignOrientChng :: AxleConfig -> State -> Double
+getHousignOrientChng axlCfg state =
   calcAngleDifference r0 r1
   where
     restingState = calcRestingState axlCfg
-    r0 = calcHousingOrientation restingState
-    r1 = calcHousingOrientation state
+    r0 = getHousignOrient restingState
+    r1 = getHousignOrient state
 
-calcAxleCenter :: Config -> AxleConfig -> State -> Point
-calcAxleCenter cfg axlCfg state =
+getAxlCntr :: Config -> AxleConfig -> State -> Point
+getAxlCntr cfg axlCfg state =
   setPointY (applyOffset2d pla rotatedOffset) 0
   where
     pla = stateLowerArmAxleMountPos state
-    hr = calcHousingOrientationChange axlCfg state
+    hr = getHousignOrientChng axlCfg state
     p0 =
       case axlCfgSystem axlCfg of
         Front -> configFrontLowerArmAxleMountLoc cfg
@@ -210,8 +204,8 @@ calcAnti cfg axlCfg state =
     brakeB = case axlCfgSystem axlCfg of
       Front -> configBrakeBias cfg
       Rear -> 1 - configBrakeBias cfg
-    ic = calcInstantCenter axlCfg state
-    axleCenter = calcAxleCenter cfg axlCfg state
+    ic = getIC axlCfg state
+    axleCenter = getAxlCntr cfg axlCfg state
     xic = abs (x ic - x axleCenter)
     slope = z ic / xic
     hcg = configSprungCGHeight cfg
@@ -234,16 +228,16 @@ sweepAnti cfg axlCfg =
   where
     calcSweepAnti = calcAnti cfg axlCfg
 
-calcTravel :: AxleConfig -> Double -> Double
-calcTravel axlCfg lwrArmAngle =
+getTrvl :: AxleConfig -> Double -> Double
+getTrvl axlCfg lwrArmAngle =
   a * tan theta
   where
     restingState = calcRestingState axlCfg
     a = calcRestingLwrArmProjLen axlCfg
     theta = lwrArmAngle - stateLowerArmAngle restingState
 
-sweepTravel :: AxleConfig -> [State] -> [Double]
-sweepTravel axlCfg =
-  map calcSweepTravel
+sweepTrvl :: AxleConfig -> [State] -> [Double]
+sweepTrvl axlCfg =
+  map calcSweepTrvl
   where
-    calcSweepTravel = calcTravel axlCfg . stateLowerArmAngle
+    calcSweepTrvl = getTrvl axlCfg . stateLowerArmAngle
