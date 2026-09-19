@@ -5,7 +5,6 @@ module Suspension
     System (..),
     AxleConfig (..),
     AxleAntis (..),
-    calcLowerArmProjectedLength,
     calcUpperArmProjectedLength,
     calcLowerArmAngle,
     calcAxleMountsDistance,
@@ -76,8 +75,8 @@ extractAxle cfg sys =
           axlCfgLowerArmAxleMountLoc = configRearLowerArmAxleMountLoc cfg
         }
 
-calcLowerArmProjectedLength :: AxleConfig -> Double
-calcLowerArmProjectedLength axlConfig =
+calcRestingLwrArmProjLen :: AxleConfig -> Double
+calcRestingLwrArmProjLen axlConfig =
   calcProjectedDistance (axlCfgLowerArmFrameMountLoc axlConfig) (axlCfgLowerArmAxleMountLoc axlConfig)
 
 calcUpperArmProjectedLength :: AxleConfig -> Double
@@ -138,7 +137,7 @@ calcState axlCfg prevUprArmAxleMountLoc lwrArmAngle =
           y = y (axlCfgLowerArmAxleMountLoc axlCfg),
           z = z (axlCfgLowerArmFrameMountLoc axlCfg) - lwrArmProjectedLength * sin lwrArmAngle
         }
-    lwrArmProjectedLength = calcLowerArmProjectedLength axlCfg
+    lwrArmProjectedLength = calcRestingLwrArmProjLen axlCfg
     upprLoc = calcUpperArmAxleMountLoc axlCfg prevUprArmAxleMountLoc lwrLoc
 
 calcInstantCenter :: AxleConfig -> State -> Point
@@ -240,7 +239,7 @@ calcTravel axlCfg lwrArmAngle =
   a * tan theta
   where
     restingState = calcRestingState axlCfg
-    a = calcLowerArmProjectedLength axlCfg
+    a = calcRestingLwrArmProjLen axlCfg
     theta = lwrArmAngle - stateLowerArmAngle restingState
 
 sweepTravel :: AxleConfig -> [State] -> [Double]
