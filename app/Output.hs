@@ -1,6 +1,6 @@
 module Output
   ( splitAntis,
-    mergeOutputColumns,
+    getColumns,
     mergeLines,
   )
 where
@@ -13,14 +13,19 @@ splitAntis :: [AxleAntis] -> ([Double], [Double])
 splitAntis antis =
   unzip [(brake, accel) | state <- antis, let brake = axlAntisBraking state, let accel = axlAntisAcceleration state]
 
-mergeOutputColumns :: [String] -> String -> [Double] -> [String]
-mergeOutputColumns prevColumns label vals =
-  case prevColumns of
-    [] -> column
-    _ -> map (intercalate ",") zippedVals
+mergeColumns :: [String] -> [String] -> [String]
+mergeColumns col1 col2 =
+  map (intercalate ",") zippedVals
   where
-    column = getOutputColumn label vals
-    zippedVals = zipWith (\a b -> [a, b]) prevColumns column
+    zippedVals = zipWith (\a b -> [a, b]) col1 col2
+
+getColumns :: [String] -> [[Double]] -> [String]
+getColumns labels vals =
+  case (labels, vals) of
+    ([], []) -> []
+    ([label], [val]) -> getOutputColumn label val
+    (hLabels : tLabels, hVals : tVals) -> mergeColumns (getOutputColumn hLabels hVals) (getColumns tLabels tVals)
+    (_, _) -> error "ERROR: The number of labels does not match the number of data columns."
 
 getOutputColumn :: String -> [Double] -> [String]
 getOutputColumn label vals =

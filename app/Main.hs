@@ -21,10 +21,8 @@ calcEverything cfg =
     antis = sweepAnti cfg axleConfig states
     (brakeAntis, accelAntis) = splitAntis antis
 
-    outputLines = mergeOutputColumns [] "Travel" travels
-    outputLines' = mergeOutputColumns outputLines "Braking Anti" brakeAntis
-    outputLines'' = mergeOutputColumns outputLines' "Acceleration Anti" accelAntis
-    output = mergeLines outputLines''
+    outputLines = getColumns ["Travel", "Braking Anti", "Acceleration Anti"] [travels, brakeAntis, accelAntis]
+    output = mergeLines outputLines
 
 main :: IO ()
 main = do
