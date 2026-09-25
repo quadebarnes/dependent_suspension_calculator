@@ -17,11 +17,12 @@ calcEverything cfg =
 
     states = sweepStates axleConfig lwrArmAngle angleChange steps
 
-    travels = sweepTrvl axleConfig states
+    travels = sweepTrvl cfg axleConfig states
     antis = sweepAnti cfg axleConfig states
     (brakeAntis, accelAntis) = splitAntis antis
+    lwrArmAngles = [stateLowerArmAngle state | state <- states]
 
-    outputLines = getColumns ["Travel", "Braking Anti", "Acceleration Anti"] [travels, brakeAntis, accelAntis]
+    outputLines = getColumns ["Lower Arm Angle", "Travel", "Braking Anti", "Acceleration Anti"] [lwrArmAngles, travels, brakeAntis, accelAntis]
     output = mergeLines outputLines
 
 main :: IO ()

@@ -228,16 +228,12 @@ sweepAnti cfg axlCfg =
   where
     calcSweepAnti = calcAnti cfg axlCfg
 
-getTrvl :: AxleConfig -> Double -> Double
-getTrvl axlCfg lwrArmAngle =
-  a * tan theta
-  where
-    restingState = calcRestingState axlCfg
-    a = calcRestingLwrArmProjLen axlCfg
-    theta = lwrArmAngle - stateLowerArmAngle restingState
+getTrvl :: Config -> AxleConfig -> State -> Double
+getTrvl cfg axlCfg state =
+  z (getAxlCntr cfg axlCfg state) - configWheelRollingRadius cfg
 
-sweepTrvl :: AxleConfig -> [State] -> [Double]
-sweepTrvl axlCfg =
+sweepTrvl :: Config -> AxleConfig -> [State] -> [Double]
+sweepTrvl cfg axlCfg =
   map calcSweepTrvl
   where
-    calcSweepTrvl = getTrvl axlCfg . stateLowerArmAngle
+    calcSweepTrvl = getTrvl cfg axlCfg
