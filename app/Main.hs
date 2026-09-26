@@ -2,6 +2,7 @@ module Main (main) where
 
 import Config
 import Data.Aeson (eitherDecodeFileStrict)
+import Geometry
 import Output
 import Suspension
 
@@ -20,9 +21,9 @@ calcEverything cfg =
     travels = sweepTrvl cfg axleConfig states
     antis = sweepAnti cfg axleConfig states
     (brakeAntis, accelAntis) = splitAntis antis
-    lwrArmAngles = [stateLowerArmAngle state | state <- states]
+    pinionAngles = map radToDeg (sweepHousingOrientChng axleConfig states)
 
-    outputLines = getColumns ["Lower Arm Angle", "Travel", "Braking Anti", "Acceleration Anti"] [lwrArmAngles, travels, brakeAntis, accelAntis]
+    outputLines = getColumns ["Travel", "Pinion Angle Change", "Braking Anti", "Acceleration Anti"] [travels, pinionAngles, brakeAntis, accelAntis]
     output = mergeLines outputLines
 
 main :: IO ()

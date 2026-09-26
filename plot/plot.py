@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 matplotlib.use("Agg")
 
 
-def argsValid(args):
+def args_valid(args):
     return len(args) == 3
 
 
-def getData(path):
+def get_data(path):
     try:
         with open(path) as file:
             return [row for row in csv.DictReader(file)]
@@ -19,7 +19,7 @@ def getData(path):
         print(e)
 
 
-def plotAntis(data, outPath):
+def plot_antis(data, out_path):
     travel = [float(row["Travel"]) for row in data]
     brakeVals = [float(row["Braking Anti"]) for row in data]
     accelVals = [float(row["Acceleration Anti"]) for row in data]
@@ -98,16 +98,72 @@ def plotAntis(data, outPath):
 
     ax.axhspan(50, 65, alpha=0.1)
 
-    fig.savefig(outPath)
+    (part1, part2) = out_path.split("/")
+    fig.savefig(f"{part1}/anits_{part2}")
+
+
+def plot_pinion_angle_change(data, out_path):
+    travel = [float(row["Travel"]) for row in data]
+    pinion_angle_chng = [float(row["Pinion Angle Change"]) for row in data]
+
+    fig, ax = plt.subplots()
+
+    ax.plot(travel, pinion_angle_chng, label="Pinion Angle Change", color="tab:blue")
+
+    restingIndex = travel.index(0)
+    startX = travel[0]
+    endX = travel[-1]
+    pinion_resting_val = pinion_angle_chng[restingIndex]
+    pinion_start_val = pinion_angle_chng[0]
+    pinion_end_val = pinion_angle_chng[-1]
+
+    ax.plot(0, pinion_resting_val, "o", ms=4, color="tab:blue")
+    ax.plot(startX, pinion_start_val, "o", ms=4, color="tab:blue")
+    ax.plot(endX, pinion_end_val, "o", ms=4, color="tab:blue")
+
+    ax.annotate(
+        f"{pinion_resting_val:.2f} deg",
+        (0, pinion_resting_val),
+        textcoords="offset points",
+        xytext=(9, 14),
+        fontsize=9,
+    )
+    ax.annotate(
+        f"{pinion_start_val:.2f} deg",
+        (startX, pinion_start_val),
+        textcoords="offset points",
+        xytext=(9, 14),
+        fontsize=9,
+    )
+    ax.annotate(
+        f"{pinion_end_val:.2f} deg",
+        (endX, pinion_end_val),
+        textcoords="offset points",
+        xytext=(9, 14),
+        fontsize=9,
+    )
+
+    plt.title("Pinion Angle Change Across Travel")
+    plt.legend()
+    plt.grid(True)
+
+    ax.set_xlabel("Axle Travel (inches)")
+    ax.set_ylabel("Pinion Angle Change from Resting (deg)")
+
+    (part1, part2) = out_path.split("/")
+    fig.savefig(f"{part1}/pinion_angle_{part2}")
 
 
 def main():
-    if argsValid(sys.argv):
-        inPath = sys.argv[1]
-        outPath = sys.argv[2]
+    if args_valid(sys.argv):
+        in_path = sys.argv[1]
+        out_path = sys.argv[2]
 
-        data = getData(inPath)
-        plotAntis(data, outPath)
+        data = get_data(in_path)
+        plot_antis(data, out_path)
+        plot_pinion_angle_change(data, out_path)
+    else:
+        print("Usage: python plot.py <data.csv> <output_path.png>")
 
 
 if __name__ == "__main__":

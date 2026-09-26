@@ -13,6 +13,7 @@ module Suspension
     sweepAnti,
     getTrvl,
     sweepTrvl,
+    sweepHousingOrientChng,
   )
 where
 
@@ -237,3 +238,6 @@ sweepTrvl cfg axlCfg =
   map calcSweepTrvl
   where
     calcSweepTrvl = getTrvl cfg axlCfg
+
+sweepHousingOrientChng :: AxleConfig -> [State] -> [Double]
+sweepHousingOrientChng axlCfg = map (getHousignOrientChng axlCfg)
