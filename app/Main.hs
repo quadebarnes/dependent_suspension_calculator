@@ -10,20 +10,26 @@ calcEverything :: Config -> String
 calcEverything cfg =
   output
   where
-    sys = Front
-    axleConfig = extractAxle cfg sys
     steps = 50
     angleChange = 0.20943951023931953
-    lwrArmAngle = calcRestingLwrArmAngle axleConfig
 
-    states = sweepStates axleConfig lwrArmAngle angleChange steps
+    frontStates = sweepStates frontAxleConfig frontArmAngle angleChange steps
+    frontAxleConfig = extractAxle cfg Front
+    frontTravels = sweepTrvl cfg frontAxleConfig frontStates
+    frontArmAngle = calcRestingLwrArmAngle frontAxleConfig
+    frontAntis = sweepAnti cfg frontAxleConfig frontStates
+    (antiDive, antiLift) = splitAntis frontAntis
+    frontPinionAnglChng = map radToDeg (sweepHousingOrientChng frontAxleConfig frontStates)
 
-    travels = sweepTrvl cfg axleConfig states
-    antis = sweepAnti cfg axleConfig states
-    (brakeAntis, accelAntis) = splitAntis antis
-    pinionAngles = map radToDeg (sweepHousingOrientChng axleConfig states)
+    rearStates = sweepStates rearAxleConfig rearArmAngle angleChange steps
+    rearAxleConfig = extractAxle cfg Rear
+    rearTravels = sweepTrvl cfg rearAxleConfig rearStates
+    rearArmAngle = calcRestingLwrArmAngle rearAxleConfig
+    rearAntis = sweepAnti cfg rearAxleConfig rearStates
+    (antiRise, antiSquat) = splitAntis rearAntis
+    rearPinionAnglChng = map radToDeg (sweepHousingOrientChng rearAxleConfig rearStates)
 
-    outputLines = getColumns ["Travel", "Pinion Angle Change", "Braking Anti", "Acceleration Anti"] [travels, pinionAngles, brakeAntis, accelAntis]
+    outputLines = getColumns ["Front Travel", "Rear Travel", "Front Pinion Angle Change", "Rear Pinion Angle Change", "Anti-squat", "Anti-rise", "Anti-lift", "Anti-dive"] [frontTravels, rearTravels, frontPinionAnglChng, rearPinionAnglChng, antiSquat, antiRise, antiLift, antiDive]
     output = mergeLines outputLines
 
 main :: IO ()
