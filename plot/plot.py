@@ -19,96 +19,113 @@ def get_data(path):
         print(e)
 
 
-def plot_antis(data, out_path):
-    travel = [float(row["Travel"]) for row in data]
-    brakeVals = [float(row["Braking Anti"]) for row in data]
-    accelVals = [float(row["Acceleration Anti"]) for row in data]
+def list_data(data):
+    front_travel = []
+    rear_travel = []
+    front_pinion_angle = []
+    rear_pinion_angle = []
+    anti_squat = []
+    anti_rise = []
+    anti_lift = []
+    anti_dive = []
 
-    fig, ax = plt.subplots()
+    for line in data:
+        front_travel.append(float(line["Front Travel"]))
+        rear_travel.append(float(line["Rear Travel"]))
+        front_pinion_angle.append(float(line["Front Pinion Angle Change"]))
+        rear_pinion_angle.append(float(line["Rear Pinion Angle Change"]))
+        anti_squat.append(float(line["Anti-squat"]))
+        anti_rise.append(float(line["Anti-rise"]))
+        anti_lift.append(float(line["Anti-lift"]))
+        anti_dive.append(float(line["Anti-dive"]))
 
-    ax.plot(travel, brakeVals, label="Braking Anti", color="tab:blue")
-    ax.plot(travel, accelVals, label="Acceleration Anti", color="tab:orange")
+    return (
+        front_travel,
+        rear_travel,
+        front_pinion_angle,
+        rear_pinion_angle,
+        anti_squat,
+        anti_rise,
+        anti_lift,
+        anti_dive,
+    )
+
+
+def plot_anti(axes, plot_title, travel, anti1_name, anti1, anti2_name, anti2):
+    axes.plot(travel, anti1, label=anti1_name, color="tab:blue")
+    axes.plot(travel, anti2, label=anti2_name, color="tab:orange")
 
     restingIndex = travel.index(0)
     startX = travel[0]
     endX = travel[-1]
-    brakeRestingVal = brakeVals[restingIndex]
-    brakeStartVal = brakeVals[0]
-    brakeEndVal = brakeVals[-1]
-    accelRestingVal = accelVals[restingIndex]
-    accelStartVal = accelVals[0]
-    accelEndVal = accelVals[-1]
+    anti1RestingVal = anti1[restingIndex]
+    anti1StartVal = anti1[0]
+    anti1EndVal = anti1[-1]
+    anti2RestingVal = anti2[restingIndex]
+    anti2StartVal = anti2[0]
+    anti2EndVal = anti2[-1]
 
-    ax.plot(0, brakeRestingVal, "o", ms=4, color="tab:blue")
-    ax.plot(startX, brakeStartVal, "o", ms=4, color="tab:blue")
-    ax.plot(endX, brakeEndVal, "o", ms=4, color="tab:blue")
-    ax.plot(0, accelRestingVal, "o", ms=4, color="tab:orange")
-    ax.plot(startX, accelStartVal, "o", ms=4, color="tab:orange")
-    ax.plot(endX, accelEndVal, "o", ms=4, color="tab:orange")
+    axes.plot(0, anti1RestingVal, "o", ms=4, color="tab:blue")
+    axes.plot(startX, anti1StartVal, "o", ms=4, color="tab:blue")
+    axes.plot(endX, anti1EndVal, "o", ms=4, color="tab:blue")
+    axes.plot(0, anti2RestingVal, "o", ms=4, color="tab:orange")
+    axes.plot(startX, anti2StartVal, "o", ms=4, color="tab:orange")
+    axes.plot(endX, anti2EndVal, "o", ms=4, color="tab:orange")
 
-    ax.annotate(
-        f"{brakeRestingVal:.2f}%",
-        (0, brakeRestingVal),
+    axes.annotate(
+        f"{anti1RestingVal:.2f}%",
+        (0, anti1RestingVal),
         textcoords="offset points",
         xytext=(9, 14),
         fontsize=9,
     )
-    ax.annotate(
-        f"{brakeStartVal:.2f}%",
-        (startX, brakeStartVal),
+    axes.annotate(
+        f"{anti1StartVal:.2f}%",
+        (startX, anti1StartVal),
         textcoords="offset points",
         xytext=(9, 14),
         fontsize=9,
     )
-    ax.annotate(
-        f"{brakeEndVal:.2f}%",
-        (endX, brakeEndVal),
+    axes.annotate(
+        f"{anti1EndVal:.2f}%",
+        (endX, anti1EndVal),
         textcoords="offset points",
         xytext=(9, 14),
         fontsize=9,
     )
-    ax.annotate(
-        f"{accelRestingVal:.2f}%",
-        (0, accelRestingVal),
+    axes.annotate(
+        f"{anti2RestingVal:.2f}%",
+        (0, anti2RestingVal),
         textcoords="offset points",
         xytext=(9, 14),
         fontsize=9,
     )
-    ax.annotate(
-        f"{accelStartVal:.2f}%",
-        (startX, accelStartVal),
+    axes.annotate(
+        f"{anti2StartVal:.2f}%",
+        (startX, anti2StartVal),
         textcoords="offset points",
         xytext=(9, 14),
         fontsize=9,
     )
-    ax.annotate(
-        f"{accelEndVal:.2f}%",
-        (endX, accelEndVal),
+    axes.annotate(
+        f"{anti2EndVal:.2f}%",
+        (endX, anti2EndVal),
         textcoords="offset points",
         xytext=(9, 14),
         fontsize=9,
     )
 
-    plt.title("Anti Values Across Travel")
-    plt.legend()
-    plt.grid(True)
+    axes.set_title(plot_title)
+    axes.set_xlabel("Axle Travel (inches)")
+    axes.set_ylabel("Anti Value (%)")
+    axes.grid(True)
+    axes.legend()
 
-    ax.set_xlabel("Axle Travel (inches)")
-    ax.set_ylabel("Anti Value (%)")
-
-    ax.axhspan(50, 65, alpha=0.1)
-
-    (part1, part2) = out_path.split("/")
-    fig.savefig(f"{part1}/anits_{part2}")
+    axes.axhspan(50, 65, alpha=0.1)
 
 
-def plot_pinion_angle_change(data, out_path):
-    travel = [float(row["Travel"]) for row in data]
-    pinion_angle_chng = [float(row["Pinion Angle Change"]) for row in data]
-
-    fig, ax = plt.subplots()
-
-    ax.plot(travel, pinion_angle_chng, label="Pinion Angle Change", color="tab:blue")
+def plot_pinion_angle_change(axes, title, travel, pinion_angle_chng):
+    axes.plot(travel, pinion_angle_chng, label="Pinion Angle Change", color="tab:blue")
 
     restingIndex = travel.index(0)
     startX = travel[0]
@@ -117,25 +134,25 @@ def plot_pinion_angle_change(data, out_path):
     pinion_start_val = pinion_angle_chng[0]
     pinion_end_val = pinion_angle_chng[-1]
 
-    ax.plot(0, pinion_resting_val, "o", ms=4, color="tab:blue")
-    ax.plot(startX, pinion_start_val, "o", ms=4, color="tab:blue")
-    ax.plot(endX, pinion_end_val, "o", ms=4, color="tab:blue")
+    axes.plot(0, pinion_resting_val, "o", ms=4, color="tab:blue")
+    axes.plot(startX, pinion_start_val, "o", ms=4, color="tab:blue")
+    axes.plot(endX, pinion_end_val, "o", ms=4, color="tab:blue")
 
-    ax.annotate(
+    axes.annotate(
         f"{pinion_resting_val:.2f} deg",
         (0, pinion_resting_val),
         textcoords="offset points",
         xytext=(9, 14),
         fontsize=9,
     )
-    ax.annotate(
+    axes.annotate(
         f"{pinion_start_val:.2f} deg",
         (startX, pinion_start_val),
         textcoords="offset points",
         xytext=(9, 14),
         fontsize=9,
     )
-    ax.annotate(
+    axes.annotate(
         f"{pinion_end_val:.2f} deg",
         (endX, pinion_end_val),
         textcoords="offset points",
@@ -143,15 +160,34 @@ def plot_pinion_angle_change(data, out_path):
         fontsize=9,
     )
 
-    plt.title("Pinion Angle Change Across Travel")
-    plt.legend()
-    plt.grid(True)
+    axes.set_title(title)
+    axes.legend()
+    axes.grid(True)
 
-    ax.set_xlabel("Axle Travel (inches)")
-    ax.set_ylabel("Pinion Angle Change from Resting (deg)")
+    axes.set_xlabel("Axle Travel (inches)")
+    axes.set_ylabel("Pinion Angle Change from Resting (deg)")
 
-    (part1, part2) = out_path.split("/")
-    fig.savefig(f"{part1}/pinion_angle_{part2}")
+
+def plot_all(data, out_path):
+    fig, ((tl, tr), (bl, br)) = plt.subplots(2, 2, figsize=(14, 9))
+
+    (
+        front_travel,
+        rear_travel,
+        front_pinion_angle,
+        rear_pinion_angle,
+        anti_squat,
+        anti_rise,
+        anti_lift,
+        anti_dive,
+    ) = list_data(data)
+
+    plot_anti(tl, "Front", front_travel, "Anti-lift", anti_lift, "Anti-dive", anti_dive)
+    plot_anti(tr, "Rear", rear_travel, "Anti-squat", anti_squat, "Anti-rise", anti_rise)
+    plot_pinion_angle_change(bl, "Front", front_travel, front_pinion_angle)
+    plot_pinion_angle_change(br, "Rear", rear_travel, rear_pinion_angle)
+
+    fig.savefig(out_path, dpi=250, bbox_inches="tight", pad_inches=0.25)
 
 
 def main():
@@ -160,8 +196,7 @@ def main():
         out_path = sys.argv[2]
 
         data = get_data(in_path)
-        plot_antis(data, out_path)
-        plot_pinion_angle_change(data, out_path)
+        plot_all(data, out_path)
     else:
         print("Usage: python plot.py <data.csv> <output_path.png>")
 
